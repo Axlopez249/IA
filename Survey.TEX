@@ -1,0 +1,592 @@
+\documentclass[12pt,a4paper]{article}
+
+% ---------------------------------------------------------
+% PAQUETES
+% ---------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=3cm,
+    right=3cm
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+% ---------------------------------------------------------
+% INFORMACIÓN DEL DOCUMENTO
+% ---------------------------------------------------------
+
+\title{
+\textbf{
+Comportamiento Adaptativo y Toma de Decisiones en
+Agentes Ecológicos mediante Aprendizaje por Refuerzo:
+Una Revisión de Literatura
+}
+}
+
+\author{
+Axel López Vega
+\and
+Kevin Núñez Camacho
+\and
+Felipe Murillo
+}
+
+\date{\today}
+
+% ---------------------------------------------------------
+% DOCUMENTO
+% ---------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+
+% ---------------------------------------------------------
+% RESUMEN
+% ---------------------------------------------------------
+
+\begin{abstract}
+
+El estudio computacional del comportamiento animal requiere representar
+individuos capaces de responder ante cambios en el ambiente, disponibilidad
+de recursos, amenazas y relaciones con otros individuos. Los Modelos
+Basados en Agentes (ABM) permiten representar estos sistemas mediante
+entidades autónomas, mientras que el Aprendizaje por Refuerzo (RL) permite
+estudiar cómo dichas entidades pueden aprender estrategias de decisión a
+partir de su interacción con el entorno.
+
+Este trabajo presenta una revisión de literatura de 21 trabajos
+relacionados con aprendizaje por refuerzo, modelado basado en agentes,
+teoría de forrajeo, sistemas multiagente y comportamiento emergente. La
+revisión se orienta mediante dos preguntas de investigación relacionadas
+con la emergencia de estrategias adaptativas ante escenarios de estrés o
+escasez de recursos y con la selección de variables de estado y funciones
+de recompensa para representar decisiones ecológicas.
+
+Los trabajos revisados permiten identificar como elementos recurrentes la
+incorporación de variables fisiológicas, información espacial, percepción
+parcial, memoria y diferentes estructuras de recompensa. Asimismo, se
+observa que comportamientos como la exploración, explotación, evasión,
+coordinación y agrupamiento pueden surgir como consecuencia de la
+interacción entre los agentes, el entorno y los incentivos utilizados
+durante el aprendizaje.
+
+\end{abstract}
+
+% ---------------------------------------------------------
+% 1. INTRODUCCIÓN
+% ---------------------------------------------------------
+
+\section{Introducción}
+
+Los ecosistemas pueden entenderse como sistemas dinámicos en los que
+múltiples organismos interactúan entre sí y con un ambiente que cambia
+constantemente. Las decisiones de cada individuo pueden estar
+condicionadas por factores internos, como su nivel energético o estado
+fisiológico, y por factores externos, como la disponibilidad de alimento,
+la presencia de depredadores, la distribución de recursos y la presencia
+de otros individuos. Debido a esta combinación de factores, representar
+computacionalmente el comportamiento ecológico constituye un problema que
+requiere considerar tanto las características individuales como las
+interacciones que ocurren dentro del sistema.
+
+Los Modelos Basados en Agentes (ABM) constituyen una alternativa para
+representar estos sistemas mediante individuos autónomos. En un ABM, cada
+agente posee un estado y puede ejecutar acciones que modifican su propia
+situación o afectan al entorno y a otros agentes. Esta característica ha
+permitido utilizar este tipo de modelos para estudiar fenómenos
+ecológicos en los que los patrones observados a nivel colectivo son
+consecuencia de las decisiones individuales.
+
+Sin embargo, una dificultad de los modelos tradicionales consiste en la
+definición de las reglas que controlan el comportamiento de los agentes.
+Cuando las decisiones se representan mediante reglas predeterminadas, el
+diseñador debe especificar de antemano cómo debe responder el agente ante
+las diferentes situaciones posibles. Este enfoque puede resultar
+limitante cuando se pretende estudiar escenarios que no fueron
+contemplados durante la construcción del modelo.
+
+El Aprendizaje por Refuerzo (RL) proporciona una alternativa basada en el
+aprendizaje mediante interacción con el entorno. En lugar de establecer
+directamente todas las decisiones mediante reglas, un agente puede
+aprender una política que determine qué acción ejecutar a partir del
+estado que observa y de las recompensas obtenidas. Esta característica
+permite estudiar si determinadas estrategias pueden surgir como
+consecuencia del proceso de aprendizaje.
+
+En los trabajos analizados se encuentran aplicaciones de este enfoque a
+problemas como el forrajeo, la selección de recursos, la respuesta ante
+depredadores, la adaptación a la escasez y la coordinación entre
+individuos. Algunos trabajos incorporan además mecanismos de memoria,
+variables fisiológicas y observabilidad parcial, buscando representar de
+manera más cercana las condiciones bajo las cuales los organismos toman
+decisiones.
+
+Un aspecto especialmente relevante para este tipo de modelos es que el
+comportamiento aprendido depende de la forma en que se representa el
+estado del agente y de la función de recompensa utilizada. Una
+representación demasiado limitada puede impedir que el agente disponga
+de la información necesaria para tomar una decisión adecuada. Por otro
+lado, una recompensa mal definida puede incentivar estrategias que
+maximicen la recompensa matemática sin representar el comportamiento
+ecológico que se pretendía estudiar.
+
+Este último problema se relaciona con el concepto de
+\textit{reward misspecification}, mediante el cual una función de
+recompensa no representa de forma adecuada el objetivo que se desea
+alcanzar. En sistemas ecológicos, este problema adquiere especial
+importancia debido a que conceptos como supervivencia, bienestar,
+eficiencia energética o cooperación pueden depender de múltiples
+variables y no necesariamente pueden representarse mediante una única
+señal de recompensa.
+
+A partir de esta problemática, el presente survey analiza trabajos que
+utilizan aprendizaje por refuerzo y modelos basados en agentes para
+representar comportamientos individuales y colectivos en ambientes
+ecológicos. El análisis se concentra principalmente en la relación entre
+las condiciones ambientales, la representación del estado, las
+estructuras de recompensa y los comportamientos que emergen durante el
+aprendizaje.
+
+La revisión se orienta mediante las siguientes preguntas de
+investigación:
+
+\begin{itemize}
+
+    \item \textbf{PI1:} ¿Cómo emergen los comportamientos adaptativos y
+    las estrategias de supervivencia colectiva o individual en los
+    agentes simulados ante escenarios de estrés ambiental o escasez de
+    recursos?
+
+    \item \textbf{PI2:} ¿Cuáles son las variables de estado
+    (sensoriales e internas) y las estructuras de funciones de recompensa
+    más efectivas para modelar la toma de decisiones ecológicas sin
+    generar sesgos o conductas no deseadas
+    (\textit{reward misspecification})?
+
+\end{itemize}
+
+El objetivo de la revisión no consiste únicamente en describir los
+trabajos seleccionados, sino en identificar patrones comunes entre ellos,
+comparar las estrategias utilizadas y determinar qué elementos del diseño
+de los agentes parecen ser relevantes para producir comportamientos
+adaptativos y ecológicamente plausibles.
+
+% ---------------------------------------------------------
+% 2. METODOLOGÍA DE LA REVISIÓN
+% ---------------------------------------------------------
+
+\section{Metodología de la revisión}
+
+El presente trabajo corresponde a una revisión de literatura centrada en
+el uso de técnicas de aprendizaje por refuerzo y modelos basados en
+agentes para representar procesos de decisión y comportamiento ecológico.
+El conjunto de análisis está compuesto por 21 trabajos seleccionados por
+su relación con las preguntas de investigación planteadas.
+
+Los trabajos abarcan diferentes perspectivas. Algunos estudian
+directamente el comportamiento de agentes individuales durante tareas de
+forrajeo, mientras que otros analizan sistemas multiagente, coordinación,
+competencia, cooperación y formación de estructuras colectivas. También
+se incluyen trabajos relacionados con memoria, modelos del mundo,
+dinámicas depredador-presa, homeostasis y diseño de entornos de
+simulación.
+
+Debido a esta diversidad, la comparación no se realiza únicamente a
+partir del algoritmo empleado. En su lugar, los trabajos se analizan
+considerando los elementos que determinan el comportamiento del agente y
+la manera en que este comportamiento es evaluado.
+
+\subsection{Dimensiones de análisis}
+
+Para realizar la comparación de los trabajos se establecieron cuatro
+dimensiones principales:
+
+\begin{enumerate}
+
+    \item \textbf{Representación del estado:} información disponible para
+    el agente, incluyendo variables internas, información ambiental,
+    información espacial, vecinos y memoria.
+
+    \item \textbf{Función de recompensa:} mecanismo utilizado para
+    incentivar determinadas acciones o resultados durante el proceso de
+    aprendizaje.
+
+    \item \textbf{Entorno e interacción:} características del ambiente de
+    simulación, disponibilidad de recursos, amenazas, número de agentes
+    y nivel de observabilidad.
+
+    \item \textbf{Comportamiento y evaluación:} estrategias individuales
+    o colectivas observadas y métricas utilizadas para determinar si el
+    comportamiento aprendido cumple con el objetivo planteado.
+
+\end{enumerate}
+
+Estas dimensiones permiten comparar estudios que emplean algoritmos
+diferentes pero que presentan problemas ecológicos similares. Por
+ejemplo, un trabajo puede utilizar aprendizaje por refuerzo profundo para
+estudiar forrajeo individual, mientras otro puede utilizar aprendizaje
+multiagente para estudiar coordinación. Aunque los algoritmos sean
+distintos, ambos pueden proporcionar evidencia sobre la influencia de la
+representación del estado o de la función de recompensa en el
+comportamiento obtenido.
+
+\subsection{Clasificación temática}
+
+A partir de las dimensiones anteriores, los trabajos se organizarán en
+cuatro áreas temáticas principales:
+
+\begin{enumerate}
+
+    \item \textbf{Forrajeo y adaptación ante escasez de recursos.}
+    Incluye trabajos relacionados con búsqueda de alimento, explotación
+    de recursos, exploración, agotamiento de parches y supervivencia.
+
+    \item \textbf{Estado, percepción y memoria.}
+    Comprende investigaciones que analizan variables fisiológicas,
+    información espacial, observabilidad parcial, memoria y
+    representaciones internas.
+
+    \item \textbf{Recompensas y homeostasis.}
+    Incluye trabajos centrados en funciones de recompensa, objetivos
+    individuales o colectivos, homeostasis y problemas derivados de una
+    especificación incorrecta de las recompensas.
+
+    \item \textbf{Comportamiento colectivo y sistemas multiagente.}
+    Comprende estudios sobre cooperación, competencia, coordinación,
+    agrupamiento, formación de bandadas y otros comportamientos
+    colectivos.
+
+\end{enumerate}
+
+Esta clasificación se utilizará posteriormente para organizar la
+discusión de los resultados. Un mismo trabajo puede aportar evidencia a
+más de una categoría, debido a que la representación del estado, la
+recompensa y la interacción entre agentes se encuentran estrechamente
+relacionadas.
+
+\subsection{Criterios de comparación}
+
+Además de la clasificación temática, cada trabajo será comparado
+considerando las siguientes características:
+
+\begin{table}[H]
+\centering
+\caption{Dimensiones utilizadas para el análisis comparativo}
+\label{tab:dimensiones}
+\small
+\begin{tabular}{p{3.5cm} p{9.5cm}}
+\toprule
+\textbf{Dimensión} & \textbf{Aspecto considerado} \\
+\midrule
+
+Algoritmo &
+Técnica de aprendizaje por refuerzo utilizada y paradigma de
+entrenamiento. \\
+
+Estado &
+Variables internas, ambientales, espaciales, sociales y temporales
+disponibles para el agente. \\
+
+Observabilidad &
+Información completa o parcial disponible durante la toma de
+decisiones. \\
+
+Recompensa &
+Tipo de recompensa, objetivo incentivado y nivel de especificidad. \\
+
+Entorno &
+Características del ambiente, distribución de recursos, amenazas y
+dinámica ambiental. \\
+
+Interacción &
+Número de agentes y presencia de cooperación, competencia o
+coordinación. \\
+
+Comportamiento &
+Estrategias individuales o colectivas observadas durante la simulación. \\
+
+Evaluación &
+Métricas utilizadas para evaluar aprendizaje, supervivencia y
+comportamiento emergente. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------
+% 3. FUNDAMENTOS CONCEPTUALES
+% ---------------------------------------------------------
+
+\section{Fundamentos conceptuales}
+
+Esta sección presenta los conceptos necesarios para interpretar los
+resultados de la revisión. Debido a que el objetivo principal del trabajo
+es analizar la literatura y no desarrollar una introducción extensa a
+cada técnica, los conceptos se presentan únicamente desde la perspectiva
+de su utilización en sistemas ecológicos.
+
+\subsection{Modelos Basados en Agentes}
+
+Los Modelos Basados en Agentes permiten representar sistemas complejos
+mediante individuos autónomos que interactúan entre sí y con un entorno.
+Cada agente puede poseer un conjunto de variables que describe su estado,
+un conjunto de acciones disponibles y mecanismos para modificar su
+comportamiento.
+
+En un contexto ecológico, un agente puede representar un organismo que
+posee características como posición, energía, nivel de hambre,
+información sensorial y experiencias anteriores. El entorno puede incluir
+recursos, obstáculos, depredadores y otros individuos.
+
+Una característica importante de los ABM es que permiten estudiar cómo
+las decisiones individuales pueden producir patrones a nivel colectivo.
+Por esta razón, resultan adecuados para investigar fenómenos como
+agrupamiento, cooperación, competencia o formación de bandadas.
+
+Sin embargo, en un ABM tradicional las decisiones pueden depender de
+reglas diseñadas manualmente. El aprendizaje por refuerzo permite
+modificar este enfoque al permitir que el agente aprenda una política de
+decisión mediante la interacción con el entorno.
+
+\subsection{Aprendizaje por Refuerzo}
+
+El Aprendizaje por Refuerzo estudia el proceso mediante el cual un agente
+aprende a seleccionar acciones a partir de su interacción con un entorno.
+En una formulación simplificada, el proceso puede representarse como:
+
+\begin{equation}
+s_t \rightarrow a_t \rightarrow r_t \rightarrow s_{t+1}
+\end{equation}
+
+donde $s_t$ representa el estado del agente en el instante $t$, $a_t$
+representa la acción seleccionada, $r_t$ corresponde a la recompensa
+obtenida y $s_{t+1}$ representa el nuevo estado.
+
+El objetivo del agente consiste en aprender una política que permita
+obtener recompensas acumuladas elevadas. En aplicaciones ecológicas, las
+acciones pueden representar desplazarse, consumir alimento, descansar,
+huir de un depredador o interactuar con otros individuos.
+
+La importancia de este enfoque para la presente revisión radica en que
+permite estudiar qué estrategias aparecen cuando el agente debe aprender
+a partir de las consecuencias de sus propias acciones.
+
+\subsection{Aprendizaje por Refuerzo Profundo}
+
+El Aprendizaje por Refuerzo Profundo (DRL) combina el aprendizaje por
+refuerzo con redes neuronales utilizadas para aproximar funciones de
+valor, políticas o representaciones del estado.
+
+Su utilización resulta relevante cuando el espacio de estados presenta
+una cantidad elevada de variables o cuando las relaciones entre las
+variables no pueden representarse fácilmente mediante estructuras
+tabulares.
+
+Dentro de los trabajos revisados, el DRL aparece asociado a problemas
+como forrajeo, conservación, percepción visual y modelado de ecosistemas.
+Sin embargo, el uso de una red neuronal por sí mismo no garantiza la
+aparición de un comportamiento ecológicamente válido. La información
+proporcionada al agente y la función de recompensa continúan siendo
+elementos fundamentales.
+
+\subsection{Observabilidad parcial y memoria}
+
+En un ambiente ecológico, un agente normalmente no tiene acceso a toda la
+información existente en el entorno. Su percepción puede estar limitada
+por la distancia, el campo de visión, obstáculos o las capacidades
+sensoriales del organismo representado.
+
+Esta situación puede formularse mediante un Proceso de Decisión de Markov
+Parcialmente Observable (POMDP), donde el agente debe tomar decisiones
+utilizando únicamente una observación parcial del estado real del
+entorno.
+
+La observabilidad parcial hace que la memoria pueda adquirir un papel
+importante. Un agente puede utilizar información de experiencias
+anteriores para complementar su percepción actual. Esta información puede
+corresponder a la ubicación de recursos, el tiempo desde una visita
+anterior, la calidad de una zona o experiencias relacionadas con una
+amenaza.
+
+Por lo tanto, la memoria puede considerarse un componente de la
+representación del estado cuando la información necesaria para tomar una
+decisión no está disponible directamente en el momento actual.
+
+\subsection{Aprendizaje por Refuerzo Multi-Agente}
+
+Cuando varios agentes aprenden e interactúan simultáneamente, el problema
+se extiende al Aprendizaje por Refuerzo Multi-Agente (MARL). En este caso,
+las acciones de un agente pueden modificar el entorno observado por los
+demás.
+
+En un escenario ecológico, por ejemplo, varios individuos pueden consumir
+el mismo recurso, competir por una fuente de alimento o beneficiarse de
+permanecer juntos. Como consecuencia, el aprendizaje de cada agente puede
+afectar el proceso de aprendizaje de los demás.
+
+Esta interacción introduce problemas como la no-estacionariedad,
+coordinación y asignación de crédito (\textit{credit assignment}). Al
+mismo tiempo, permite estudiar cómo pueden surgir comportamientos
+colectivos a partir de decisiones individuales.
+
+\subsection{Comportamiento emergente}
+
+Para efectos de esta revisión, se considera comportamiento emergente
+aquel patrón observable que resulta de la interacción entre los agentes,
+el entorno y las reglas de aprendizaje, sin necesidad de definir
+explícitamente dicho patrón como una regla de comportamiento.
+
+Entre los comportamientos analizados en los trabajos se encuentran la
+cooperación, competencia, coordinación, formación de grupos, evasión
+colectiva y adaptación ante cambios en la disponibilidad de recursos.
+
+La distinción entre comportamiento programado y comportamiento emergente
+es importante para esta revisión. Si una función de recompensa obliga
+directamente al agente a producir un patrón determinado, observar dicho
+patrón no necesariamente demuestra que haya surgido como consecuencia de
+la interacción con el entorno.
+
+Por esta razón, los trabajos se analizarán no solamente considerando qué
+comportamiento aparece, sino también las condiciones bajo las cuales
+aparece y la forma en que los autores determinan que dicho comportamiento
+es realmente emergente.
+
+% ---------------------------------------------------------
+% SECCIÓN SIGUIENTE
+% ---------------------------------------------------------
+
+% La siguiente sección desarrollará el análisis temático de los
+% 21 trabajos revisados.
+
+\section{Análisis temático de la literatura}
+
+\subsection{Forrajeo y adaptación ante la escasez de recursos}
+
+% DESARROLLAR EN LA SIGUIENTE ETAPA
+
+\subsection{Representación del estado, percepción y memoria}
+
+% DESARROLLAR EN LA SIGUIENTE ETAPA
+
+\subsection{Funciones de recompensa y homeostasis}
+
+% DESARROLLAR EN LA SIGUIENTE ETAPA
+
+\subsection{Comportamiento colectivo y sistemas multiagente}
+
+% DESARROLLAR EN LA SIGUIENTE ETAPA
+
+% ---------------------------------------------------------
+% REFERENCIAS
+% ---------------------------------------------------------
+
+\begin{thebibliography}{99}
+
+\bibitem{Paper1}
+A computational approach to visual ecology with deep reinforcement
+learning.
+
+\bibitem{Paper2}
+Agent-based ecosystem modeling with deep reinforcement learning.
+
+\bibitem{Paper3}
+Deep reinforcement learning for conservation decisions.
+
+\bibitem{Paper4}
+World Models Unlock Optimal Foraging Strategies in Reinforcement
+Learning Agents.
+
+\bibitem{Paper5}
+Computational models of episodic-like memory in food-caching birds.
+
+\bibitem{Paper6}
+A neural network model of foraging decisions made under predation risk:
+The Cognitive-Emotional Forager.
+
+\bibitem{Paper7}
+Linking cognitive strategy, neural mechanism, and movement statistics in
+group foraging behaviors.
+
+\bibitem{Paper8}
+A review on vision-centric coarse to fine-grained animal action
+recognition.
+
+\bibitem{Survey1}
+Decision-Making in Agent-Based Modeling: A Current Review and Future
+Prospectus.
+
+\bibitem{Paper9}
+A brief review of evolutionary game dynamics in the reinforcement
+learning paradigm.
+
+\bibitem{Paper10}
+Using AI enhanced agent-based models to support management of wild
+populations.
+
+\bibitem{Paper11}
+Why Study Emergent Behavior When You Can Regulate It? Aligning
+Multi-Agent Systems with Reward Prediction.
+
+\bibitem{Paper12}
+Emergent Coordination and Phase Structure in Independent Multi-Agent
+Reinforcement Learning.
+
+\bibitem{Paper13}
+Resource depletion accelerates rate learning but not composition learning
+in patch foraging.
+
+\bibitem{Paper14}
+From homeostasis to resource sharing: Biologically and economically
+aligned multi-objective multi-agent gridworld-based AI safety
+benchmarks.
+
+\bibitem{Paper15}
+Measuring collaborative emergent behavior in multiagent reinforcement
+learning.
+
+\bibitem{Paper16}
+Emergent Behaviors in Multiagent Pursuit-Evasion Games Within a Bounded
+2D Grid World.
+
+\bibitem{Paper17}
+Learning to Flock in Open Space by Avoiding Collisions and Staying
+Together.
+
+\bibitem{Paper18}
+Foraging Swarms Using Multi-Agent Reinforcement Learning.
+
+\bibitem{Paper19}
+Aquarium: A Comprehensive Framework for Exploring Predator-Prey
+Dynamics through Multi-Agent Reinforcement Learning Algorithms.
+
+\bibitem{Paper20}
+Development of Swarm Behavior in Artificial Learning Agents That Adapt
+to Different Foraging Environment.
+
+\bibitem{Survey2}
+Multi-Agent Deep Reinforcement Learning: A Survey.
+
+\end{thebibliography}
+
+\end{document}
