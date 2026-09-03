@@ -458,29 +458,100 @@ aparece y la forma en que los autores determinan que dicho comportamiento
 es realmente emergente.
 
 % ---------------------------------------------------------
-% SECCIÓN SIGUIENTE
+% 4. Análisis temático de la literatura
 % ---------------------------------------------------------
 
-% La siguiente sección desarrollará el análisis temático de los
-% 21 trabajos revisados.
+\section{ANÁLISIS TEMÁTICO DE LA LITERATURA}
 
-\section{Análisis temático de la literatura}
+Como paso previo al desglose conceptual, y para facilitar la contrastación 
+metodológica de los distintos enfoques, la 
+\textbf{Tabla \ref{tab:comparativa}} (ubicada en esta sección) sintetiza los 
+trabajos más representativos de la revisión. Esta matriz cruza las 
+técnicas algorítmicas, los entornos de simulación (datasets/Gridworlds), 
+las métricas principales y, de manera crítica, las limitaciones 
+identificadas en cada estudio. A partir del mapeo expuesto en la tabla, 
+la literatura se analiza a través de las siguientes cuatro dimensiones 
+fundamentales:
 
 \subsection{Forrajeo y adaptación ante la escasez de recursos}
-
-% DESARROLLAR EN LA SIGUIENTE ETAPA
+La literatura demuestra que el forrajeo óptimo ante la escasez no depende de 
+reglas fijas, sino de la capacidad de anticipación del agente. Los agentes que 
+construyen representaciones internas o ''modelos del mundo'' logran planificar 
+trayectorias de forrajeo óptimas ante recursos heterogéneos, convergiendo a 
+estrategias de la teoría clásica del Teorema del Valor Marginal sin requerir 
+memorias tabulares rígidas. Asimismo, el agotamiento gradual de los recursos 
+actúa como una fuente crucial de información; las aves aprenden la calidad 
+inicial del parche basándose en el patrón de espaciado temporal entre bocados, 
+optimizando su supervivencia mediante reglas de temporización en entornos 
+variables. Además, los algoritmos de aprendizaje sin modelo (model-free) han 
+demostrado descubrir estrategias autónomas ante situaciones críticas y puntos 
+de inflexión ecológica, superando las reglas empíricas humanas frente a 
+perturbaciones ambientales.
 
 \subsection{Representación del estado, percepción y memoria}
+Una representación de estado efectiva requiere combinar la percepción espacial 
+con variables fisiológicas. La inclusión de señales de interocepción, como 
+el nivel de saciedad, permite a los agentes adaptar su velocidad y realizar 
+pausas voluntarias para conservar energía \cite{Paper1}. En entornos de 
+escasez extrema, incorporar mecanismos de memoria episódica biológica resulta 
+vital para que el agente recuerde qué, dónde y cuándo almacenó comida, 
+evitando visitar celdas recién agotadas. El estado también suele estructurarse 
+combinando variables internas de salud con información de una vecindad espacial
+limitada ($3 x 3$) y señales de distancia a los recursos \cite{Paper2}. 
+Para garantizar el realismo de estas simulaciones, los modelos deben basarse 
+en resoluciones espaciales precisas que capturen la dinámica de la vegetación 
+y el agua, elementos fundamentales para determinar la idoneidad del hábitat.
 
-% DESARROLLAR EN LA SIGUIENTE ETAPA
+\subsection{IV-C. Funciones de recompensa y homeostasis}
+El diseño de las recompensas enfrenta el riesgo de generar conductas sesgadas 
+(reward misspecification), donde el agente aprende atajos matemáticos en lugar 
+de estrategias ecológicas. Para evitar recompensas dispersas, se proponen 
+funciones de recompensa homeostáticas cuadráticas que incentivan mantener 
+niveles internos de energía e hidratación equilibrados \cite{Paper2}. Estas 
+funciones no lineales penalizan cuadráticamente tanto la deficiencia como la 
+sobresaturación, obligando a la IA a buscar un equilibrio biológico en lugar 
+de maximizar el consumo infinitamente. Adicionalmente, el estado interno debe 
+interactuar con las amenazas del entorno; la ponderación de la recompensa 
+mediante penalizaciones por riesgo de depredación permite modelar el conflicto 
+biológico entre el hambre y el miedo. En simulaciones multiagente con escasez, 
+las recompensas diseñadas a mano suelen fallar, haciendo necesaria la 
+integración de redes predictoras (MARP) que evalúen el éxito a nivel 
+poblacional en lugar del beneficio individual.
 
-\subsection{Funciones de recompensa y homeostasis}
+\subsection{IV-D. Comportamiento colectivo y sistemas multiagente}
+En entornos multiagente, el comportamiento emergente surge sin necesidad de 
+programar reglas rígidas. En cuadrículas 2D acotadas, agentes perseguidores 
+pueden desarrollar hasta 21 patrones de coordinación táctica excluyendo 
+deliberadamente las recompensas densas por distancia y utilizando únicamente 
+recompensas de resultado. La formación de bandadas con alto orden polar emerge 
+de manera natural al aplicar funciones de costo local que penalizan tanto la 
+dispersión excesiva como el hacinamiento entre individuos. Incluso en 
+escenarios donde los individuos son egoístas y carecen de incentivos 
+explícitos para cooperar, la agrupación (swarming) surge como estrategia 
+adaptativa para compensar la observabilidad parcial del entorno. Sin embargo, 
+la literatura advierte que un alto desempeño en términos de recompensa media 
+no siempre implica cooperación biológica real, por lo que es necesario 
+analizar estadísticamente las trayectorias para validar si la colaboración es 
+causal o una ilusión estadística.
 
-% DESARROLLAR EN LA SIGUIENTE ETAPA
-
-\subsection{Comportamiento colectivo y sistemas multiagente}
-
-% DESARROLLAR EN LA SIGUIENTE ETAPA
+% --- TABLA COMPARATIVA FLOTANTE ---
+\begin{table*}[tbp]
+\centering
+\caption{Comparativa de Literatura Relevante (Ejes A, B y C)}
+\label{tab:comparativa}
+\scriptsize
+\begin{tabular}{p{2cm} c p{2cm} p{2.5cm} p{2.5cm} p{3.5cm} p{3cm}}
+\toprule
+\textbf{Referencia} & \textbf{Año} & \textbf{Técnica} & \textbf{Dataset/Entorno} & \textbf{Métrica Principal} & \textbf{Resultado Reportado} & \textbf{Limitación Identificada} \\
+\midrule
+Xu \& Dang \cite{Paper18} & 2025 & MADDPG & Gridworld 2D acotado & Tasa de captura & 99.9 \% de éxito desarrollando 21 patrones tácticos. & Excluye recompensas continuas por distancia. \\
+\addlinespace
+Jiang et al. \cite{Paper1} & 2024 & DRL (Memoria GRU) & Simulador de forrajeo visual & Nivel de saciedad & Agentes aprenden pausas voluntarias para conservar energía. & Requiere ajuste fino de las penalizaciones. \\
+\addlinespace
+Barton et al. \cite{Paper17} & 2018 & MADDPG & Entorno continuo 2D & Recompensa media & Mejora sustancial frente a enfoques sin aprendizaje. & Alto desempeño no garantiza coordinación biológica. \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 % ---------------------------------------------------------
 % REFERENCIAS
@@ -580,26 +651,7 @@ Multi-Agent Deep Reinforcement Learning: A Survey.
 
 \end{thebibliography}
 
-% --- TABLA COMPARATIVA OBLIGATORIA (Usa table* para doble columna) ---
-\begin{table*}[tbp]
-\centering
-\caption{Comparativa de Literatura Relevante (Ejes A, B y C)}
-\label{tab:comparativa}
-\small
-\begin{tabular}{p{2cm} c p{2.5cm} p{2.5cm} p{2.5cm} p{3.5cm} p{3cm}}
-\toprule
-\textbf{Referencia} & \textbf{Año} & \textbf{Técnica} & \textbf{Dataset/Entorno} & \textbf{Métrica Principal} & \textbf{Resultado Reportado} & \textbf{Limitación Identificada} \\
-\midrule
-Xu \& Dang \cite{Paper16} & 2025 & MADDPG & Gridworld 2D acotado & Tasa de captura & 99.9\% de éxito desarrollando 21 patrones tácticos. & Excluye recompensas continuas por distancia.\\
-\addlinespace
-Jiang et al. \cite{Paper1} & 2024 & DRL (Memoria GRU) & Simulador de forrajeo visual & Nivel de saciedad & Agentes aprenden pausas voluntarias para conservar energía. & Requiere ajuste fino de las penalizaciones. \\
-\addlinespace
-Barton et al. \cite{Paper15} & 2018 & MADDPG & Entorno continuo 2D & Recompensa media & Mejora sustancial frente a enfoques sin aprendizaje. & Alto desempeño no garantiza coordinación biológica.\\
-\addlinespace
-% AGREGAR EL RESTO DE PAPERS AQUÍ
-\bottomrule
-\end{tabular}
-\end{table*}
+
 
 \end{document}
 
