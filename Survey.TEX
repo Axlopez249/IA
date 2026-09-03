@@ -461,7 +461,7 @@ es realmente emergente.
 % 4. Análisis temático de la literatura
 % ---------------------------------------------------------
 
-\section{ANÁLISIS TEMÁTICO DE LA LITERATURA}
+\section{Análisis de la literatura}
 
 Como paso previo al desglose conceptual, y para facilitar la contrastación 
 metodológica de los distintos enfoques, la 
@@ -534,24 +534,293 @@ no siempre implica cooperación biológica real, por lo que es necesario
 analizar estadísticamente las trayectorias para validar si la colaboración es 
 causal o una ilusión estadística.
 
-% --- TABLA COMPARATIVA FLOTANTE ---
-\begin{table*}[tbp]
+\subsection{Comparación de estrategias de modelado}
+
+La comparación de los trabajos muestra que la representación del estado
+constituye uno de los principales factores que diferencian los enfoques
+revisados. Los modelos más simples utilizan principalmente información
+espacial o distancia hacia recursos y otros agentes, mientras que los
+modelos orientados a representar procesos ecológicos más complejos
+incorporan variables internas como energía, hambre, hidratación o
+saciedad.
+
+También se observa una diferencia entre los modelos que utilizan
+información directamente observable y aquellos que incorporan memoria o
+representaciones internas. En ambientes donde los recursos cambian o
+presentan una distribución temporal, la memoria permite utilizar
+información obtenida en interacciones anteriores. De manera similar, la
+observabilidad parcial obliga al agente a tomar decisiones sin disponer
+del estado completo del ambiente.
+
+En cuanto a las funciones de recompensa, los trabajos revisados
+presentan desde recompensas simples asociadas con la obtención de
+recursos hasta estructuras que consideran homeostasis, supervivencia,
+riesgo y objetivos colectivos. Esta diferencia resulta especialmente
+importante debido a que una recompensa demasiado específica puede
+restringir el comportamiento del agente, mientras que una recompensa
+demasiado general puede permitir estrategias que maximicen la señal
+numérica sin representar adecuadamente el objetivo ecológico.
+
+En los sistemas multiagente, esta situación se vuelve más compleja debido
+a que el comportamiento de un agente puede modificar las condiciones
+experimentadas por los demás. Por ello, algunos estudios utilizan
+recompensas individuales, mientras que otros incorporan objetivos
+compartidos o multiobjetivo. Los resultados revisados sugieren que la
+cooperación y la coordinación no necesariamente deben programarse de
+forma explícita, pero su aparición debe evaluarse cuidadosamente para
+distinguir entre un comportamiento verdaderamente emergente y uno
+producido directamente por el diseño de la recompensa.
+
+\section{Síntesis de los hallazgos}
+
+La literatura revisada permite observar que el comportamiento adaptativo
+de los agentes no depende exclusivamente del algoritmo de aprendizaje
+utilizado. La interacción entre la representación del estado, la función
+de recompensa y las características del entorno tiene un papel
+fundamental en las estrategias obtenidas.
+
+En escenarios de escasez de recursos, los agentes pueden modificar sus
+estrategias de exploración y explotación, utilizar información obtenida
+de experiencias anteriores y responder a cambios en la disponibilidad de
+recursos. Cuando además se incorporan múltiples agentes, estas decisiones
+individuales pueden generar patrones colectivos como agrupamiento,
+coordinación, cooperación o competencia.
+
+De manera general, los estudios también muestran que incrementar la
+complejidad del modelo no garantiza un comportamiento más realista. La
+incorporación de variables adicionales debe responder a las capacidades
+que se desean representar y a la información que tendría disponible el
+organismo modelado. De forma similar, una función de recompensa más
+compleja no necesariamente produce mejores resultados si introduce
+incentivos contradictorios o comportamientos no deseados.
+
+Estos hallazgos establecen la base para analizar posteriormente las
+preguntas de investigación. En particular, permiten estudiar qué
+combinaciones de variables de estado y recompensas favorecen la
+adaptación individual y cuáles permiten que aparezcan comportamientos
+colectivos sin definirlos explícitamente.
+
+% --- TABLA COMPARATIVA DE LOS ESTUDIOS ---
+\begin{table*}[t]
 \centering
-\caption{Comparativa de Literatura Relevante (Ejes A, B y C)}
+\caption{Comparación de los trabajos revisados}
 \label{tab:comparativa}
 \scriptsize
-\begin{tabular}{p{2cm} c p{2cm} p{2.5cm} p{2.5cm} p{3.5cm} p{3cm}}
+\begin{tabular}{p{2.4cm} p{1.2cm} p{1.7cm} p{2.5cm} p{2.7cm} p{3.0cm}}
 \toprule
-\textbf{Referencia} & \textbf{Año} & \textbf{Técnica} & \textbf{Dataset/Entorno} & \textbf{Métrica Principal} & \textbf{Resultado Reportado} & \textbf{Limitación Identificada} \\
+\textbf{Trabajo} &
+\textbf{Año} &
+\textbf{Enfoque} &
+\textbf{Estado / Variables} &
+\textbf{Recompensa / Objetivo} &
+\textbf{Principal aporte} \\
 \midrule
-Xu \& Dang \cite{Paper18} & 2025 & MADDPG & Gridworld 2D acotado & Tasa de captura & 99.9 \% de éxito desarrollando 21 patrones tácticos. & Excluye recompensas continuas por distancia. \\
+
+Jiang et al. \cite{Paper1} &
+2024 &
+DRL / ecología visual &
+Alimento, señales visuales, saciedad y estado interno &
+Supervivencia y obtención de alimento &
+Los agentes aprenden a distinguir recursos beneficiosos y perjudiciales. La memoria recurrente y el estado de saciedad permiten desarrollar estrategias de forrajeo más complejas. \\
+
 \addlinespace
-Jiang et al. \cite{Paper1} & 2024 & DRL (Memoria GRU) & Simulador de forrajeo visual & Nivel de saciedad & Agentes aprenden pausas voluntarias para conservar energía. & Requiere ajuste fino de las penalizaciones. \\
+
+Agent-based ecosystem modeling \cite{Paper2} &
+2024 &
+DRL + ABM &
+Energía, hidratación, vecinos, recursos y obstáculos &
+Recompensa homeostática &
+Muestra que ciclos depredador-presa y patrones espaciales pueden emerger a partir de agentes con reglas de decisión aprendidas. \\
+
 \addlinespace
-Barton et al. \cite{Paper17} & 2018 & MADDPG & Entorno continuo 2D & Recompensa media & Mejora sustancial frente a enfoques sin aprendizaje. & Alto desempeño no garantiza coordinación biológica. \\
+
+Deep reinforcement learning for conservation decisions \cite{Paper3} &
+2024 &
+DRL / TD3 &
+Estado ambiental y condiciones de perturbación &
+Supervivencia y conservación &
+Los agentes pueden descubrir estrategias ante puntos de inflexión ecológica, aunque la formulación de la recompensa y del POMDP constituye una fuente de riesgo. \\
+
+\addlinespace
+
+World Models \cite{Paper4} &
+2025 &
+RL + World Models &
+Representación latente del entorno y recursos &
+Energía neta / eficiencia de forrajeo &
+Las representaciones predictivas del entorno permiten anticipar cambios y desarrollar estrategias de forrajeo cercanas a predicciones de la teoría del forrajeo óptimo. \\
+
+\addlinespace
+
+Episodic-like memory \cite{Paper5} &
+2023 &
+Modelo cognitivo &
+Qué, dónde y cuándo ocurrió un evento &
+Supervivencia / recuperación de alimento &
+Resalta la importancia de la memoria espacial y temporal para tomar decisiones durante períodos de escasez. \\
+
+\addlinespace
+
+Cognitive-Emotional Forager \cite{Paper6} &
+2005 &
+Red neuronal / forrajeo &
+Hambre, energía, amenaza y miedo &
+Equilibrio entre alimentación y riesgo &
+Modela el conflicto entre satisfacer necesidades internas y evitar depredadores. \\
+
+\addlinespace
+
+Group foraging behaviors \cite{Paper7} &
+--- &
+Modelo de comportamiento grupal &
+Posición y densidad de vecinos, movimiento &
+Éxito individual / competencia &
+Relaciona decisiones individuales con patrones colectivos de movimiento durante el forrajeo. \\
+
+\addlinespace
+
+Decision-Making in ABM \cite{Survey1} &
+--- &
+Survey &
+Estado, recompensa, interacción y decisión &
+Diversos &
+Identifica estructuras recurrentes para representar decisiones en modelos basados en agentes y destaca la importancia de los modelos del mundo y la interacción. \\
+
+\addlinespace
+
+Evolutionary game dynamics \cite{Paper9} &
+2026 &
+RL + teoría de juegos &
+Estado estratégico e interacción &
+Cooperación / competencia &
+Relaciona el aprendizaje por refuerzo con procesos de adaptación, competencia y coordinación entre agentes. \\
+
+\addlinespace
+
+AI-enhanced ABM for wild populations \cite{Paper10} &
+2025 &
+IA + ABM &
+Condiciones ambientales y poblacionales &
+Supervivencia poblacional &
+Propone modelos capaces de representar poblaciones adaptativas ante perturbaciones como sequías y cambios del paisaje. \\
+
+\addlinespace
+
+Reward Prediction / MARP \cite{Paper11} &
+--- &
+MARL &
+Estado individual y colectivo &
+Objetivos individuales y globales &
+Plantea mecanismos para alinear las recompensas individuales con objetivos colectivos y reducir comportamientos no deseados. \\
+
+\addlinespace
+
+Emergent Coordination \cite{Paper12} &
+2025 &
+MARL independiente &
+Identidad, densidad y configuración espacial &
+Coordinación colectiva &
+Muestra transiciones entre comportamientos coordinados y no coordinados bajo diferentes condiciones de densidad y congestión. \\
+
+\addlinespace
+
+Resource depletion \cite{Paper13} &
+2026 &
+RL / forrajeo &
+Cantidad, composición y disponibilidad temporal &
+Obtención eficiente de recursos &
+El agotamiento de los recursos funciona como información que permite modificar la estrategia de exploración y explotación. \\
+
+\addlinespace
+
+Homeostasis and resource sharing \cite{Paper14} &
+2025 &
+Multi-objective MARL &
+Energía, recursos y estado interno &
+Homeostasis y sostenibilidad &
+Integra objetivos biológicos y colectivos para estudiar el consumo y distribución sostenible de recursos. \\
+
+\addlinespace
+
+Collaborative emergent behavior \cite{Paper15} &
+2018 &
+MADDPG / MARL &
+Trayectorias e interacción entre agentes &
+Captura / recompensa colectiva &
+Advierte que una recompensa elevada no demuestra necesariamente cooperación real, por lo que se requiere analizar las trayectorias y relaciones causales. \\
+
+\addlinespace
+
+Pursuit-Evasion Games \cite{Paper16} &
+2025 &
+MARL &
+Posición y movimiento en Gridworld &
+Resultado de persecución &
+Identifica múltiples patrones tácticos y comportamientos coordinados emergentes en escenarios de persecución y evasión. \\
+
+\addlinespace
+
+Learning to Flock \cite{Paper17} &
+2026 &
+Q-learning &
+Distancia relativa entre vecinos &
+Cohesión y evitación de colisiones &
+La formación de bandadas puede emerger utilizando reglas de aprendizaje simples basadas en mantener proximidad sin producir colisiones. \\
+
+\addlinespace
+
+Foraging Swarms \cite{Paper18} &
+2020 &
+MARL &
+Observaciones locales y posición de agentes &
+Obtención de recursos &
+Muestra que el agrupamiento puede surgir incluso cuando los agentes reciben recompensas individuales, debido a los beneficios de la observación colectiva. \\
+
+\addlinespace
+
+Aquarium \cite{Paper19} &
+2024 &
+MARL / PPO &
+Campo de visión, vecinos, recursos y amenazas &
+Supervivencia / reproducción &
+Proporciona un entorno multiagente para estudiar dinámicas depredador-presa, reproducción, inanición y comportamientos colectivos. \\
+
+\addlinespace
+
+Development of Swarm Behavior \cite{Paper20} &
+2020 &
+Projective Simulation &
+Posición y distancia a recursos &
+Forrajeo y agrupamiento &
+Relaciona la distribución de recursos con la aparición de comportamiento colectivo y diferentes patrones de movimiento. \\
+
+\addlinespace
+
+Multi-Agent Deep Reinforcement Learning Survey \cite{Survey3} &
+2021 &
+Survey de MARL &
+Estados individuales y globales &
+Cooperación / competencia &
+Resume problemas fundamentales de MARL, incluyendo no estacionariedad, asignación de crédito, escalabilidad y diseño de recompensas. \\
+
 \bottomrule
 \end{tabular}
 \end{table*}
+
+La comparación presentada en la Tabla \ref{tab:comparativa} permite
+identificar que los trabajos revisados no utilizan un único enfoque para
+representar el comportamiento ecológico. Por el contrario, existe una
+relación recurrente entre tres elementos: la información disponible para
+el agente, la función utilizada para evaluar sus decisiones y las
+interacciones que ocurren dentro del entorno.
+
+A partir de esta relación, los estudios pueden agruparse principalmente
+en cuatro dimensiones: adaptación durante el forrajeo y la escasez de
+recursos, representación del estado y mecanismos de percepción y memoria,
+diseño de funciones de recompensa y homeostasis, y comportamiento
+colectivo en sistemas multiagente. Estas dimensiones permiten analizar los
+trabajos de forma transversal y relacionarlos directamente con las
+preguntas de investigación planteadas.
 
 % ---------------------------------------------------------
 % REFERENCIAS
