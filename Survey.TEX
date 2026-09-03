@@ -600,208 +600,245 @@ combinaciones de variables de estado y recompensas favorecen la
 adaptación individual y cuáles permiten que aparezcan comportamientos
 colectivos sin definirlos explícitamente.
 
-% --- TABLA COMPARATIVA DE LOS ESTUDIOS ---
-\begin{table*}[t]
+% --- TABLA COMPARATIVA COMPLETA DE LOS 24 TRABAJOS ---
+\begin{table*}[tbp]
 \centering
-\caption{Comparación de los trabajos revisados}
-\label{tab:comparativa}
+\caption{Comparativa de Literatura Relevante (Ejes A, B y C) - Completa}
+\label{tab:comparativa_completa}
 \scriptsize
-\begin{tabular}{p{2.4cm} p{1.2cm} p{1.7cm} p{2.5cm} p{2.7cm} p{3.0cm}}
+\begin{tabular}{p{1.6cm} c p{2.0cm} p{2.0cm} p{2.2cm} p{3.5cm} p{3.4cm}}
 \toprule
-\textbf{Trabajo} &
-\textbf{Año} &
-\textbf{Enfoque} &
-\textbf{Estado / Variables} &
-\textbf{Recompensa / Objetivo} &
-\textbf{Principal aporte} \\
+\textbf{Referencia} & \textbf{Año} & \textbf{Técnica} & \textbf{Dataset/Entorno} & \textbf{Métrica Principal} & \textbf{Resultado Reportado} & \textbf{Limitación Identificada} \\
 \midrule
 
 Jiang et al. \cite{Paper1} &
 2024 &
-DRL / ecología visual &
-Alimento, señales visuales, saciedad y estado interno &
-Supervivencia y obtención de alimento &
-Los agentes aprenden a distinguir recursos beneficiosos y perjudiciales. La memoria recurrente y el estado de saciedad permiten desarrollar estrategias de forrajeo más complejas. \\
+DRL (Memoria GRU) &
+Forrajeo visual (Gridworld) &
+Nivel de saciedad &
+Agentes aprenden pausas voluntarias y discriminan alimentos venenosos. &
+Requiere ajuste fino de penalizaciones para evitar inactividad. \\
 
 \addlinespace
 
-Agent-based ecosystem modeling \cite{Paper2} &
+Zheng et al. \cite{Paper2} &
 2024 &
 DRL + ABM &
-Energía, hidratación, vecinos, recursos y obstáculos &
-Recompensa homeostática &
-Muestra que ciclos depredador-presa y patrones espaciales pueden emerger a partir de agentes con reglas de decisión aprendidas. \\
+Cuadrícula 2D (3x3 vecindad) &
+Estabilidad energética &
+Resiliencia ante degradación, estrés térmico y escasez de recursos. &
+Problema inicial de recompensas dispersas (requirió función cuadrática). \\
 
 \addlinespace
 
-Deep reinforcement learning for conservation decisions \cite{Paper3} &
+Willoughby et al. \cite{Paper3} &
 2024 &
-DRL / TD3 &
-Estado ambiental y condiciones de perturbación &
-Supervivencia y conservación &
-Los agentes pueden descubrir estrategias ante puntos de inflexión ecológica, aunque la formulación de la recompensa y del POMDP constituye una fuente de riesgo. \\
+TD3 (Model-free) &
+Simulación ecológica (Gym) &
+Retorno acumulado &
+Descubren estrategias óptimas ante puntos de inflexión (tipping points). &
+Alto riesgo de reward misspecification si el POMDP está mal formulado. \\
 
 \addlinespace
 
-World Models \cite{Paper4} &
+Fonseca et al. \cite{Paper4} &
 2025 &
-RL + World Models &
-Representación latente del entorno y recursos &
-Energía neta / eficiencia de forrajeo &
-Las representaciones predictivas del entorno permiten anticipar cambios y desarrollar estrategias de forrajeo cercanas a predicciones de la teoría del forrajeo óptimo. \\
+World Models (RL) &
+Forrajeo heterogéneo &
+Ganancia de energía neta &
+Convergencia natural hacia las estrategias del Teorema del Valor Marginal (MVT). &
+Fuerte dependencia de la memoria latente predictiva. \\
 
 \addlinespace
 
-Episodic-like memory \cite{Paper5} &
+Autor \cite{Paper5} &
 2023 &
-Modelo cognitivo &
-Qué, dónde y cuándo ocurrió un evento &
-Supervivencia / recuperación de alimento &
-Resalta la importancia de la memoria espacial y temporal para tomar decisiones durante períodos de escasez. \\
+Modelo Cognitivo &
+Entornos con escasez extrema &
+Tiempo de supervivencia &
+Memoria episódica (qué, dónde, cuándo) permite superar periodos sin recursos. &
+Alta complejidad arquitectónica para modelar componentes espaciales-temporales. \\
 
 \addlinespace
 
-Cognitive-Emotional Forager \cite{Paper6} &
+Coleman et al. \cite{Paper6} &
 2005 &
-Red neuronal / forrajeo &
-Hambre, energía, amenaza y miedo &
-Equilibrio entre alimentación y riesgo &
-Modela el conflicto entre satisfacer necesidades internas y evitar depredadores. \\
+Redes Neuronales &
+Escenario con depredadores &
+Balance riesgo-recompensa &
+Emergencia de decisiones dinámicas de huida, descanso o alimentación. &
+Acoplamiento rígido entre las variables internas de hambre y miedo/estrés. \\
 
 \addlinespace
 
-Group foraging behaviors \cite{Paper7} &
---- &
-Modelo de comportamiento grupal &
-Posición y densidad de vecinos, movimiento &
-Éxito individual / competencia &
-Relaciona decisiones individuales con patrones colectivos de movimiento durante el forrajeo. \\
+Autor \cite{Paper7} &
+2024 &
+MARL (Búsqueda grupal) &
+Espacio de búsqueda colectiva &
+Estadísticas de movimiento &
+Relaciona decisiones individuales con patrones colectivos (vuelos de Lévy). &
+Complejidad para equilibrar el beneficio individual frente a la competencia. \\
 
 \addlinespace
 
-Decision-Making in ABM \cite{Survey1} &
---- &
-Survey &
-Estado, recompensa, interacción y decisión &
-Diversos &
-Identifica estructuras recurrentes para representar decisiones en modelos basados en agentes y destaca la importancia de los modelos del mundo y la interacción. \\
-
-\addlinespace
-
-Evolutionary game dynamics \cite{Paper9} &
+Autor \cite{Paper8} &
 2026 &
-RL + teoría de juegos &
-Estado estratégico e interacción &
-Cooperación / competencia &
-Relaciona el aprendizaje por refuerzo con procesos de adaptación, competencia y coordinación entre agentes. \\
+Visión por Computadora &
+Secuencias de acciones motoras &
+Taxonomía de acciones &
+Ofrece taxonomías estándar para estructurar el catálogo de acciones del agente. &
+Enfoque centrado en reconocimiento visual más que en aprendizaje por refuerzo. \\
 
 \addlinespace
 
-AI-enhanced ABM for wild populations \cite{Paper10} &
+Survey 1 \cite{Survey1} &
+2018 &
+Model-Based RL &
+Forrajeo en parches &
+Tasa de retorno del entorno &
+Demuestra que la anticipación mental supera a las reglas de decisión fijas. &
+Revisión teórica general sin un banco de pruebas numérico unificado. \\
+
+\addlinespace
+
+A brief review \cite{Paper9} &
+2026 &
+RL + Teoría de Juegos &
+Entornos de recursos compartidos &
+Tasa de coordinación &
+Transición autónoma entre competencia destructiva y cooperación grupal. &
+Las recompensas estáticas fallan ante la dinámica evolutiva de la población. \\
+
+\addlinespace
+
+Using AI enhanced ABM \cite{Paper10} &
 2025 &
 IA + ABM &
-Condiciones ambientales y poblacionales &
-Supervivencia poblacional &
-Propone modelos capaces de representar poblaciones adaptativas ante perturbaciones como sequías y cambios del paisaje. \\
+Simulacro de poblaciones silvestres &
+Tasas de supervivencia global &
+Simula respuestas adaptativas ante perturbaciones severas (sequías, clima). &
+Obliga a cruzar atributos fisiológicos individuales con variables a gran escala. \\
 
 \addlinespace
 
-Reward Prediction / MARP \cite{Paper11} &
---- &
-MARL &
-Estado individual y colectivo &
-Objetivos individuales y globales &
-Plantea mecanismos para alinear las recompensas individuales con objetivos colectivos y reducir comportamientos no deseados. \\
-
-\addlinespace
-
-Emergent Coordination \cite{Paper12} &
-2025 &
-MARL independiente &
-Identidad, densidad y configuración espacial &
-Coordinación colectiva &
-Muestra transiciones entre comportamientos coordinados y no coordinados bajo diferentes condiciones de densidad y congestión. \\
-
-\addlinespace
-
-Resource depletion \cite{Paper13} &
+Caftory et al. (MARP) \cite{Paper11} &
 2026 &
-RL / forrajeo &
-Cantidad, composición y disponibilidad temporal &
-Obtención eficiente de recursos &
-El agotamiento de los recursos funciona como información que permite modificar la estrategia de exploración y explotación. \\
+Red Predictora (MARP) &
+Cuadrícula de escasez (Harvest) &
+Éxito poblacional (Sostenibilidad) &
+Regula la Tragedia de los Comunes mediante predicción de recompensa grupal. &
+Las recompensas diseñadas a mano (handcrafted) colapsan en escasez. \\
 
 \addlinespace
 
-Homeostasis and resource sharing \cite{Paper14} &
+Yamaguchi \cite{Paper12} &
+2025 &
+IQL (Independent RL) &
+Gridworld acotado 2D &
+CSR y TD-error &
+Identificadores one-hot rompen la simetría y generan roles biológicos especializados. &
+Sin IDs únicos, las redes colapsan en fases de congestión (jammed phase). \\
+
+\addlinespace
+
+Kilpatrick et al. \cite{Paper13} &
+2026 &
+RL (Parches estocásticos) &
+Entornos de parches variables &
+Intervalos de tiempo / conteo &
+Divergencia autónoma entre reglas de conteo y temporización según el entorno. &
+Sacrifica ganancia inmediata de energía para adquirir conocimiento global. \\
+
+\addlinespace
+
+Benchmark Homeostasis \cite{Paper14} &
 2025 &
 Multi-objective MARL &
-Energía, recursos y estado interno &
-Homeostasis y sostenibilidad &
-Integra objetivos biológicos y colectivos para estudiar el consumo y distribución sostenible de recursos. \\
+Gym / PettingZoo Gridworld &
+Tasa de regeneración de recursos &
+Penalizaciones cuadráticas equilibran la homeostasis y evitan extinciones masivas. &
+Un consumo desregulado acelera la caída de la tasa de regeneración a cero. \\
 
 \addlinespace
 
-Collaborative emergent behavior \cite{Paper15} &
+Wetland Mapping Survey \cite{Survey2} &
+2025 &
+Remote Sensing / ML &
+Mapas de humedales y vegetación &
+Habitat Suitability Index &
+Fundamenta la necesidad de modelar capas espaciales precisas para aves. &
+Fuerte dependencia de la resolución espacial y teledetección de entrada. \\
+
+\addlinespace
+
+Barton et al. \cite{Paper15} &
 2018 &
 MADDPG / MARL &
-Trayectorias e interacción entre agentes &
-Captura / recompensa colectiva &
-Advierte que una recompensa elevada no demuestra necesariamente cooperación real, por lo que se requiere analizar las trayectorias y relaciones causales. \\
+Entorno continuo 2D &
+Recompensa media de captura &
+Mejora sustancial (13.70 vs 1.85) frente a comportamientos fijos o ingenuos. &
+Alto desempeño numérico no garantiza la existencia de coordinación causal real. \\
 
 \addlinespace
 
-Pursuit-Evasion Games \cite{Paper16} &
+Xu \& Dang \cite{Paper16} &
 2025 &
-MARL &
-Posición y movimiento en Gridworld &
-Resultado de persecución &
-Identifica múltiples patrones tácticos y comportamientos coordinados emergentes en escenarios de persecución y evasión. \\
+MADDPG &
+Gridworld 2D acotado &
+Tasa de éxito de captura &
+99.9\% de éxito desarrollando 21 patrones tácticos de persecución y evasión. &
+Excluye deliberadamente recompensas continuas por distancia (solo resultado). \\
 
 \addlinespace
 
-Learning to Flock \cite{Paper17} &
+Brambati et al. \cite{Paper17} &
 2026 &
-Q-learning &
-Distancia relativa entre vecinos &
-Cohesión y evitación de colisiones &
-La formación de bandadas puede emerger utilizando reglas de aprendizaje simples basadas en mantener proximidad sin producir colisiones. \\
+Q-Learning &
+Espacio continuo &
+Orden polar (Cohesión) &
+Emergencia de bandadas cohesivas minimizando una función de costo local. &
+Vector de estado altamente reducido (limitado a distancia topológica). \\
 
 \addlinespace
 
-Foraging Swarms \cite{Paper18} &
+Hahn et al. \cite{Paper18} &
 2020 &
-MARL &
-Observaciones locales y posición de agentes &
-Obtención de recursos &
-Muestra que el agrupamiento puede surgir incluso cuando los agentes reciben recompensas individuales, debido a los beneficios de la observación colectiva. \\
+MARL (Agentes egoístas) &
+Espacio continuo (Visión parcial) &
+Recompensa individual de alimento &
+El agrupamiento (swarming) surge de forma natural para cubrir puntos ciegos. &
+La cooperación grupal depende estrictamente de la observabilidad parcial. \\
 
 \addlinespace
 
-Aquarium \cite{Paper19} &
+Aquarium (Kölle) \cite{Paper19} &
 2024 &
-MARL / PPO &
-Campo de visión, vecinos, recursos y amenazas &
-Supervivencia / reproducción &
-Proporciona un entorno multiagente para estudiar dinámicas depredador-presa, reproducción, inanición y comportamientos colectivos. \\
+MARL / PPO (Shared) &
+Aquarium (PettingZoo) &
+Supervivencia por paso &
+Emerge un nado direccional coordinado y resistencia a la hambruna de caza. &
+Requiere una función de recompensa estrictamente dispersa y neutral. \\
 
 \addlinespace
 
-Development of Swarm Behavior \cite{Paper20} &
+López-Incera et al. \cite{Paper20} &
 2020 &
 Projective Simulation &
-Posición y distancia a recursos &
-Forrajeo y agrupamiento &
-Relaciona la distribución de recursos con la aparición de comportamiento colectivo y diferentes patrones de movimiento. \\
+Entornos de forrajeo variables &
+Ajuste a distribuciones de Lévy &
+La alineación de la bandada se adapta directamente a la lejanía del alimento. &
+Utiliza una variante algorítmica alternativa ajena al paradigma DRL estándar. \\
+
 
 \addlinespace
 
-Multi-Agent Deep Reinforcement Learning Survey \cite{Survey3} &
+Survey MARL \cite{Survey3} &
 2021 &
-Survey de MARL &
-Estados individuales y globales &
-Cooperación / competencia &
-Resume problemas fundamentales de MARL, incluyendo no estacionariedad, asignación de crédito, escalabilidad y diseño de recompensas. \\
+MARL (Survey transversal) &
+Múltiples benchmarks &
+Eficiencia y convergencia global &
+Estructura los retos de no-estacionariedad y asignación de crédito en MARL. &
+No aporta un experimento propio, sino una síntesis bibliográfica teórica. \\
 
 \bottomrule
 \end{tabular}
@@ -821,6 +858,94 @@ diseño de funciones de recompensa y homeostasis, y comportamiento
 colectivo en sistemas multiagente. Estas dimensiones permiten analizar los
 trabajos de forma transversal y relacionarlos directamente con las
 preguntas de investigación planteadas.
+
+% ---------------------------------------------------------
+% 5. IDENTIFICACIÓN DE BRECHAS
+% ---------------------------------------------------------
+\section{Identificación de Brechas}
+A partir de la revisión de literatura realizada, se identifican tres carencias principales en el estado del arte actual sobre modelado ecológico con aprendizaje por refuerzo:
+
+\begin{itemize}
+    \item \textbf{1. Modelado de escasez extrema y homeostasis no lineal:} La mayoría de los trabajos eval\'uan el forrajeo en entornos con abundancia relativa o bajo incentivos lineales simples, omitiendo el colapso metabólico de los agentes ante crisis severas de recursos \cite{Paper2, Paper14}. \textit{Abordaje del proyecto:} Nuestro simulador incorporará funciones de recompensa homeostáticas cuadráticas para regular la inanición y la sobresaturación.
+    \item \textbf{2. Riesgo de \textit{Reward Misspecification} en MARL:} Como advierten Barton et al. \cite{Paper15} y Caftory et al. \cite{Paper11}, las recompensas diseñadas a mano (handcrafted) suelen provocar que la bandada aprenda atajos matemáticos egoístas en lugar de estrategias sostenibles. \textit{Abordaje del proyecto:} Se integrarán mecanismos de predicción de recompensa grupal inspirados en el marco MARP \cite{Paper11}.
+    \item \textbf{3. Falta de asimetría y roles especializados:} Diversos entornos asumen poblaciones homogéneas donde todos los agentes act\'uan idénticamente. \textit{Abordaje del proyecto:} Siguiendo la metodología de Yamaguchi \cite{Paper12}, utilizaremos identificadores \textit{one-hot} para romper la simetría y permitir la emergencia de roles biológicos (exploradores frente a explotadores).
+\end{itemize}
+
+% ---------------------------------------------------------
+% 6. METODOLOGÍA PROPUESTA 
+% ---------------------------------------------------------
+\section{Metodología Propuesta}
+
+Para dar respuesta a las preguntas de investigación, el problema de 
+supervivencia aviar se formaliza bajo el paradigma del Track C (Aprendizaje por 
+Refuerzo) mediante los siguientes componentes:
+
+\subsection{Formalización del Proceso de Decisión de Markov (MDP)}
+El entorno se modela como un MDP definido por la tupla $\mathcal{M} = 
+(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$:
+\begin{itemize}
+    \item \textbf{Espacio de Estados ($\mathcal{S}$):} Cada ave procesa un vector
+     de observabilidad parcial que combina atributos fisiológicos internos 
+     (masa corporal, nivel de energía y saciedad) y percepción local del 
+     entorno (temperatura de la celda, abundancia de recursos y proximidad a 
+     amenazas), complementado con un identificador \textit{one-hot} unívoco 
+     para romper la simetría \cite{Paper12}.
+    \item \textbf{Espacio de Acciones ($\mathcal{A}$):} Catálogo de acciones 
+    discretas que incluye: desplazamiento direccional en la cuadrícula 2D, 
+    consumo de alimento, descanso/ahorrar energía y migración de parche 
+    \cite{Paper16}.
+    \item \textbf{Dinámica de Transición ($\mathcal{P}$):} Las celdas del 
+    Gridworld experimentan agotamiento dinámico al ser consumidas y un proceso 
+    de regeneración temporal regulado por la densidad de la población 
+    \cite{Paper14}.
+\end{itemize}
+
+\subsection{Diseño de la Función de Recompensa Homeostática}
+Con el fin de mitigar el \textit{reward misspecification}, la recompensa 
+$\mathcal{R}$ no evalúa únicamente la ingesta de alimento, sino que implementa 
+una penalización cuadrática basada en la homeostasis interna \cite{Paper2, 
+Paper14}: penaliza la deficiencia extrema (inanición) y la sobresaturación 
+(sobrepeso que ralentiza el movimiento), forzando al agente a mantener un 
+equilibrio energético óptimo.
+
+\subsection{Baseline de Literatura y Protocolo Experimental}
+Como baseline numérico de referencia (Eje C), el proyecto tomará la tasa de 
+supervivencia base y la eficiencia de forrajeo reportadas en arquitecturas 
+Q-learning estándar y en simuladores de cuadrícula desregulados \cite{Paper14}. 
+El objetivo del modelo propuesto será superar dichas métricas estáticas 
+demostrando una mayor resiliencia ante reducciones drásticas en la biomasa del 
+entorno.
+
+\subsection{Riesgos Metodológicos y Mitigación}
+El principal riesgo identificado es la convergencia del agente hacia políticas 
+degeneradas (por ejemplo, permanecer estático para evitar cualquier gasto 
+metabólico). Este riesgo se mitigará imponiendo un costo metabólico basal 
+estricto por cada paso temporal y calibrando de manera controlada el factor de 
+descuento ($\gamma$).
+
+\subsection{Protocolo Experimental y Métricas de Evaluación}
+Para evaluar de forma cuantitativa el desempeño del agente principal de 
+Inteligencia Artificial frente a la población de fondo con comportamientos 
+estándar, el protocolo experimental registrará el ciclo de vida completo de 
+cada episodio bajo escenarios de escasez controlada. El rendimiento se 
+cuantificará mediante las siguientes métricas clave:
+\begin{itemize}
+    \item \textbf{Tasa de Supervivencia:} Porcentaje de pasos temporales en los 
+    que el agente logra mantener sus variables vitales por encima del umbral 
+    crítico de inanición.
+    \item \textbf{Eficiencia Energética Neta:} Relación cuantitativa entre 
+    las unidades de energía recuperadas al alimentarse frente al costo 
+    metabólico derivado de la distancia recorrida, la velocidad de 
+    desplazamiento y el cansancio acumulado.
+    \item \textbf{Dinámica de Movimiento y Pausas:} Registro detallado del 
+    tiempo transcurrido entre ingestas de alimento, la cantidad de alimento 
+    consumido, la distancia total recorrida en el plano XY y el tiempo acumulado 
+    en estado estático (ahorro de estamina).
+    \item \textbf{Interacción y Competencia Directa:} Frecuencia de eventos de 
+    depredación o eliminación por inanición extrema entre los agentes dentro 
+    de la cuadrícula, evaluando la agresividad o la competencia por recursos 
+    limitados.
+\end{itemize}
 
 % ---------------------------------------------------------
 % REFERENCIAS
@@ -911,9 +1036,6 @@ Dynamics through Multi-Agent Reinforcement Learning Algorithms.
 \bibitem{Paper20}
 Development of Swarm Behavior in Artificial Learning Agents That Adapt
 to Different Foraging Environment.
-
-\bibitem{Paper22}
-World Models Unlock Optimal Foraging Strategies in Reinforcement Learning Agents
 
 \bibitem{Survey3}
 Multi-Agent Deep Reinforcement Learning: A Survey.
