@@ -580,4 +580,26 @@ Multi-Agent Deep Reinforcement Learning: A Survey.
 
 \end{thebibliography}
 
+% --- TABLA COMPARATIVA OBLIGATORIA (Usa table* para doble columna) ---
+\begin{table*}[tbp]
+\centering
+\caption{Comparativa de Literatura Relevante (Ejes A, B y C)}
+\label{tab:comparativa}
+\small
+\begin{tabular}{p{2cm} c p{2.5cm} p{2.5cm} p{2.5cm} p{3.5cm} p{3cm}}
+\toprule
+\textbf{Referencia} & \textbf{Año} & \textbf{Técnica} & \textbf{Dataset/Entorno} & \textbf{Métrica Principal} & \textbf{Resultado Reportado} & \textbf{Limitación Identificada} \\
+\midrule
+Xu \& Dang \cite{Paper16} & 2025 & MADDPG & Gridworld 2D acotado & Tasa de captura & 99.9\% de éxito desarrollando 21 patrones tácticos. & Excluye recompensas continuas por distancia.\\
+\addlinespace
+Jiang et al. \cite{Paper1} & 2024 & DRL (Memoria GRU) & Simulador de forrajeo visual & Nivel de saciedad & Agentes aprenden pausas voluntarias para conservar energía. & Requiere ajuste fino de las penalizaciones. \\
+\addlinespace
+Barton et al. \cite{Paper15} & 2018 & MADDPG & Entorno continuo 2D & Recompensa media & Mejora sustancial frente a enfoques sin aprendizaje. & Alto desempeño no garantiza coordinación biológica.\\
+\addlinespace
+% AGREGAR EL RESTO DE PAPERS AQUÍ
+\bottomrule
+\end{tabular}
+\end{table*}
+
 \end{document}
+
