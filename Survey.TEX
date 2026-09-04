@@ -611,7 +611,7 @@ colectivos sin definirlos explícitamente.
 \textbf{Referencia} & \textbf{Año} & \textbf{Técnica} & \textbf{Dataset/Entorno} & \textbf{Métrica Principal} & \textbf{Resultado Reportado} & \textbf{Limitación Identificada} \\
 \midrule
 
-Jiang et al. \cite{Paper1} &
+Sokoloski et al. \cite{Paper1} &
 2024 &
 DRL (Memoria GRU) &
 Forrajeo visual (Gridworld) &
@@ -621,8 +621,8 @@ Requiere ajuste fino de penalizaciones para evitar inactividad. \\
 
 \addlinespace
 
-Zheng et al. \cite{Paper2} &
-2024 &
+Strannegård et al. \cite{Paper2} &
+2026 &
 DRL + ABM &
 Cuadrícula 2D (3x3 vecindad) &
 Estabilidad energética &
@@ -631,8 +631,8 @@ Problema inicial de recompensas dispersas (requirió función cuadrática). \\
 
 \addlinespace
 
-Willoughby et al. \cite{Paper3} &
-2024 &
+Lapeyrolerie et al. \cite{Paper3} &
+2022 &
 TD3 (Model-free) &
 Simulación ecológica (Gym) &
 Retorno acumulado &
@@ -651,7 +651,7 @@ Fuerte dependencia de la memoria latente predictiva. \\
 
 \addlinespace
 
-Autor \cite{Paper5} &
+Brea et al. \cite{Paper5} &
 2023 &
 Modelo Cognitivo &
 Entornos con escasez extrema &
@@ -671,7 +671,7 @@ Acoplamiento rígido entre las variables internas de hambre y miedo/estrés. \\
 
 \addlinespace
 
-Autor \cite{Paper7} &
+Urbaniak et al. \cite{Paper7} &
 2024 &
 MARL (Búsqueda grupal) &
 Espacio de búsqueda colectiva &
@@ -681,7 +681,7 @@ Complejidad para equilibrar el beneficio individual frente a la competencia. \\
 
 \addlinespace
 
-Autor \cite{Paper8} &
+Zia et al. \cite{Paper8} &
 2026 &
 Visión por Computadora &
 Secuencias de acciones motoras &
@@ -691,8 +691,8 @@ Enfoque centrado en reconocimiento visual más que en aprendizaje por refuerzo. 
 
 \addlinespace
 
-Survey 1 \cite{Survey1} &
-2018 &
+DeAngelis \& Diaz \cite{Survey1} &
+2019 &
 Model-Based RL &
 Forrajeo en parches &
 Tasa de retorno del entorno &
@@ -701,7 +701,7 @@ Revisión teórica general sin un banco de pruebas numérico unificado. \\
 
 \addlinespace
 
-A brief review \cite{Paper9} &
+Zheng et al. \cite{Paper9} &
 2026 &
 RL + Teoría de Juegos &
 Entornos de recursos compartidos &
@@ -711,7 +711,7 @@ Las recompensas estáticas fallan ante la dinámica evolutiva de la población. 
 
 \addlinespace
 
-Using AI enhanced ABM \cite{Paper10} &
+Willoughby et al. \cite{Paper10} &
 2025 &
 IA + ABM &
 Simulacro de poblaciones silvestres &
@@ -751,7 +751,7 @@ Sacrifica ganancia inmediata de energía para adquirir conocimiento global. \\
 
 \addlinespace
 
-Benchmark Homeostasis \cite{Paper14} &
+Pihlakas \cite{Paper14} &
 2025 &
 Multi-objective MARL &
 Gym / PettingZoo Gridworld &
@@ -761,7 +761,7 @@ Un consumo desregulado acelera la caída de la tasa de regeneración a cero. \\
 
 \addlinespace
 
-Wetland Mapping Survey \cite{Survey2} &
+Zerrouk et al. \cite{Survey2} &
 2025 &
 Remote Sensing / ML &
 Mapas de humedales y vegetación &
@@ -811,7 +811,7 @@ La cooperación grupal depende estrictamente de la observabilidad parcial. \\
 
 \addlinespace
 
-Aquarium (Kölle) \cite{Paper19} &
+Kölle et al. \cite{Paper19} &
 2024 &
 MARL / PPO (Shared) &
 Aquarium (PettingZoo) &
@@ -832,7 +832,7 @@ Utiliza una variante algorítmica alternativa ajena al paradigma DRL estándar. 
 
 \addlinespace
 
-Survey MARL \cite{Survey3} &
+Gronauer \& Diepold \cite{Survey3} &
 2021 &
 MARL (Survey transversal) &
 Múltiples benchmarks &
@@ -954,95 +954,74 @@ cuantificará mediante las siguientes métricas clave:
 \begin{thebibliography}{99}
 
 \bibitem{Paper1}
-A computational approach to visual ecology with deep reinforcement
-learning.
+S. Sokoloski \textit{et al.}, ``A computational approach to visual ecology with deep reinforcement learning,'' \textit{arXiv}, 2024. [Online]. Disponible: \url{https://arxiv.org/abs/2402.05266}
 
 \bibitem{Paper2}
-Agent-based ecosystem modeling with deep reinforcement learning.
+C. Strannegård \textit{et al.}, ``Agent-based ecosystem modeling with deep reinforcement learning,'' \textit{ScienceDirect}, 2026. [Online]. Disponible: \url{https://www.sciencedirect.com/science/article/pii/S1574954126002256}
 
 \bibitem{Paper3}
-Deep reinforcement learning for conservation decisions.
+M. Lapeyrolerie \textit{et al.}, ``Deep reinforcement learning for conservation decisions,'' \textit{British Ecological Society}, 2022. [Online]. Disponible: \url{https://besjournals.onlinelibrary.wiley.com/doi/epdf/10.1111/2041-210X.13954}
 
 \bibitem{Paper4}
-World Models Unlock Optimal Foraging Strategies in Reinforcement
-Learning Agents.
+Y. Fonseca \textit{et al.}, ``World Models Unlock Optimal Foraging Strategies in Reinforcement Learning Agents,'' \textit{arXiv}, 2025. [Online]. Disponible: \url{https://arxiv.org/abs/2512.12548}
 
 \bibitem{Paper5}
-Computational models of episodic-like memory in food-caching birds.
+J. Brea \textit{et al.}, ``Computational models of episodic-like memory in food-caching birds,'' \textit{Nature Communications}, 2023. [Online]. Disponible: \url{https://www.nature.com/articles/s41467-023-38570-x}
 
 \bibitem{Paper6}
-A neural network model of foraging decisions made under predation risk:
-The Cognitive-Emotional Forager.
+S. Coleman, ``A neural network model of foraging decisions made under predation risk,'' \textit{Springer Nature Link}, 2005. [Online]. Disponible: \url{https://link.springer.com/article/10.3758/CABN.5.4.434}
 
 \bibitem{Paper7}
-Linking cognitive strategy, neural mechanism, and movement statistics in
-group foraging behaviors.
+R. Urbaniak \textit{et al.}, ``Linking cognitive strategy, neural mechanism, and movement statistics in group foraging behaviors,'' \textit{Scientific Reports}, 2024. [Online]. Disponible: \url{https://www.nature.com/articles/s41598-024-71931-0}
 
 \bibitem{Paper8}
-A review on vision-centric coarse to fine-grained animal action
-recognition.
+A. Zia \textit{et al.}, ``A review on vision-centric coarse to fine-grained animal action recognition,'' \textit{Springer Nature Link}, 2026. [Online]. Disponible: \url{https://link.springer.com/article/10.1007/s10462-026-11526-5}
 
 \bibitem{Survey1}
-Decision-Making in Agent-Based Modeling: A Current Review and Future
-Prospectus.
+D. DeAngelis \& S. Diaz, ``Decision-Making in Agent-Based Modeling: A Current Review and Future Prospectus,'' \textit{Frontiers in Ecology and Evolution}, 2019. [Online]. Disponible: \url{https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2018.00237/full}
 
 \bibitem{Paper9}
-A brief review of evolutionary game dynamics in the reinforcement
-learning paradigm.
+G. Zheng \textit{et al.}, ``A brief review of evolutionary game dynamics in the reinforcement learning paradigm,'' \textit{arXiv}, 2026. [Online]. Disponible: \url{https://arxiv.org/abs/2602.04150}
 
 \bibitem{Paper10}
-Using AI enhanced agent-based models to support management of wild
-populations.
+J. Willoughby \textit{et al.}, ``Using AI enhanced agent-based models to support management of wild populations,'' \textit{Springer Nature Link}, 2025. [Online]. Disponible: \url{https://link.springer.com/article/10.1007/s10980-025-02149-2}
 
 \bibitem{Paper11}
-Why Study Emergent Behavior When You Can Regulate It? Aligning
-Multi-Agent Systems with Reward Prediction.
+A. Caftory \textit{et al.}, ``Why Study Emergent Behavior When You Can Regulate It? Aligning Multi-Agent Systems with Reward Prediction,'' \textit{arXiv}, 2026. [Online]. Disponible: \url{https://arxiv.org/pdf/2608.07280v1}
 
 \bibitem{Paper12}
-Emergent Coordination and Phase Structure in Independent Multi-Agent
-Reinforcement Learning.
+A. Yamaguchi, ``Emergent Coordination and Phase Structure in Independent Multi-Agent Reinforcement Learning,'' \textit{arXiv}, 2025. [Online]. Disponible: \url{https://arxiv.org/pdf/2511.23315v1}
 
 \bibitem{Paper13}
-Resource depletion accelerates rate learning but not composition learning
-in patch foraging.
+Z. Kilpatrick \textit{et al.}, ``Resource depletion accelerates rate learning but not composition learning in patch foraging,'' \textit{arXiv}, 2026. [Online]. Disponible: \url{https://arxiv.org/html/2607.29476v1}
 
 \bibitem{Paper14}
-From homeostasis to resource sharing: Biologically and economically
-aligned multi-objective multi-agent gridworld-based AI safety
-benchmarks.
+R. Pihlakas \textit{et al.}, ``From homeostasis to resource sharing: Biologically and economically aligned multi-objective multi-agent gridworld-based AI safety benchmarks,'' \textit{arXiv}, 2025. [Online]. Disponible: \url{https://arxiv.org/html/2410.00081v5}
 
 \bibitem{Survey2}
-Machine and Deep Learning for Wetland Mapping and Bird-Habitat Monitoring: A Systematic Review of Remote-Sensing Applications
+M. Zerrouk \textit{et al.}, ``Machine and Deep Learning for Wetland Mapping and Bird-Habitat Monitoring: A Systematic Review of Remote-Sensing Applications,'' \textit{MDPI}, 2025. [Online]. Disponible: \url{https://www.mdpi.com/2072-4292/17/21/3605}
 
 \bibitem{Paper15}
-Measuring collaborative emergent behavior in multiagent reinforcement
-learning.
+S. Barton \textit{et al.}, ``Measuring collaborative emergent behavior in multiagent reinforcement learning,'' \textit{arXiv}, 2018. [Online]. Disponible: \url{https://arxiv.org/pdf/1807.08663}
 
 \bibitem{Paper16}
-Emergent Behaviors in Multiagent Pursuit-Evasion Games Within a Bounded
-2D Grid World.
+S. Xu and Z. Dang, ``Emergent Behaviors in Multiagent Pursuit-Evasion Games Within a Bounded 2D Grid World,'' \textit{National Library of Medicine - PMC Biomedical Research}, 2025. [Online]. Disponible: \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC12340135/}
 
 \bibitem{Paper17}
-Learning to Flock in Open Space by Avoiding Collisions and Staying
-Together.
+M. Brambati \textit{et al.}, ``Learning to Flock in Open Space by Avoiding Collisions and Staying Together,'' \textit{arXiv}, 2026. [Online]. Disponible: \url{https://arxiv.org/pdf/2506.15587}
 
 \bibitem{Paper18}
-Foraging Swarms Using Multi-Agent Reinforcement Learning.
+C. Hahn \textit{et al.}, ``Foraging Swarms Using Multi-Agent Reinforcement Learning,'' \textit{MIT Press Direct}, 2020. [Online]. Disponible: \url{https://direct.mit.edu/isal/article/doi/10.1162/isal_a_00267/98496}
 
 \bibitem{Paper19}
-Aquarium: A Comprehensive Framework for Exploring Predator-Prey
-Dynamics through Multi-Agent Reinforcement Learning Algorithms.
+M. Kölle \textit{et al.}, ``Aquarium: A Comprehensive Framework for Exploring Predator-Prey Dynamics through Multi-Agent Reinforcement Learning Algorithms,'' \textit{arXiv}, 2024. [Online]. Disponible: \url{https://arxiv.org/abs/2401.07056}
 
 \bibitem{Paper20}
-Development of Swarm Behavior in Artificial Learning Agents That Adapt
-to Different Foraging Environment.
+A. López-Incera \textit{et al.}, ``Development of Swarm Behavior in Artificial Learning Agents That Adapt to Different Foraging Environment,'' \textit{National Library of Medicine - PMC Biomedical Research}, 2020. [Online]. Disponible: \url{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7748156/}
 
 \bibitem{Survey3}
-Multi-Agent Deep Reinforcement Learning: A Survey.
+S. Gronauer \& K. Diepold, ``Multi-Agent Deep Reinforcement Learning: A Survey,'' \textit{Springer Nature Link - Artificial Intelligence Review}, 2021. [Online]. Disponible: \url{https://link.springer.com/article/10.1007/s10462-021-09996-w}
 
 \end{thebibliography}
 
-
-
 \end{document}
-
