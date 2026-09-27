@@ -15,17 +15,25 @@ El motor es independiente del algoritmo de búsqueda:
 el agente decide la acción; el motor aplica las reglas del juego.
 """
 
-# El nombre del módulo puede cambiar según la estructura del proyecto.
-from agent import SearchAgent
+from typing import Any, Optional
 
 
 class GameEngine:
     """Motor principal que controla la ejecución de una partida de TileUp."""
 
-    def __init__(self, instance_path, agent: SearchAgent):
+    def __init__(self, instance_path: str, agent: Any):
         # Carga la instancia y prepara el tablero, la secuencia de fichas
         # y la información necesaria para ejecutar la partida.
-        pass
+        self.agent = agent
+        self.n = 0
+        self.k = 0
+        self.m = 0
+        self.board = []
+        self.pieces = []
+        self.next_piece_index = 0
+        self.solution = []
+
+        self.load_instance(instance_path)
 
     # ------------------------------------------------------------------
     # EJECUCIÓN PRINCIPAL
@@ -57,9 +65,11 @@ class GameEngine:
         # desde el archivo de instancia.
         pass
 
-    def get_next_piece(self):
+    def get_next_piece(self) -> Optional[tuple[int, int]]:
         # Devuelve la siguiente ficha pendiente de la secuencia.
-        pass
+        if self.next_piece_index >= self.m:
+            return None
+        return self.pieces[self.next_piece_index]
 
     # ------------------------------------------------------------------
     # ESTADO
