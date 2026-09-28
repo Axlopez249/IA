@@ -87,29 +87,100 @@ class GameEngine:
 
     def load_instance(self, instance_path):
         # Leer el archivo de texto respetando el formato
-        with open(instance_path, 'r') as f:
-            lineas = f.readlines()
+        try:
+            with open(instance_path, 'r') as f:
+                lineas = f.readlines()
+        except OSError as error:
+            raise ValueError(f"No se pudo abrir el archivo de instancia: {instance_path}") from error
 
-        # Filtrar líneas en blanco y comentarios (las que empiezan con #)[cite: 1]
+        # Limpiar líneas vacías, comentarios completos y comentarios inline
         lineas_limpias = []
-        for linea in lineas:
-            l = linea.strip()
-            if l and not l.startswith('#'):
-                lineas_limpias.append(l)
+        for numero_linea, linea in enumerate(lineas, start=1):
+            linea = linea.split('#', 1)[0].strip()
+            if linea:
+                lineas_limpias.append((numero_linea, linea))
 
-        # Extraer N y K separados por espacio (primera línea útil)[cite: 1]
-        self.n, self.k = map(int, lineas_limpias[0].split())
-        
-        # Extraer M (segunda línea útil)[cite: 1]
-        self.m = int(lineas_limpias[1])
+        if not lineas_limpias:
+            raise ValueError("El archivo de instancia está vacío.")
 
-        # Extraer la secuencia de fichas (el resto de las líneas)[cite: 1]
+        # Extraer N y K separados por espacio (primera línea útil)
+        numero_linea, linea = lineas_limpias[0]
+        valores_tablero = linea.split()
+        if len(valores_tablero) != 2:
+            raise ValueError(
+                f"Línea {numero_linea}: se esperaban exactamente dos valores para N y K."
+            )
+
+        try:
+            self.n, self.k = map(int, valores_tablero)
+        except ValueError as error:
+            raise ValueError(
+                f"Línea {numero_linea}: N y K deben ser enteros."
+            ) from error
+
+        if self.n <= 0 or self.k <= 0:
+            raise ValueError(
+                f"Línea {numero_linea}: N y K deben ser mayores que cero."
+            )
+
+        if len(lineas_limpias) < 2:
+            raise ValueError("Falta la línea que indica la cantidad de fichas.")
+
+        # Extraer M (segunda línea útil)
+        numero_linea, linea = lineas_limpias[1]
+        valores_fichas = linea.split()
+        if len(valores_fichas) != 1:
+            raise ValueError(
+                f"Línea {numero_linea}: M debe ser un único entero."
+            )
+
+        try:
+            self.m = int(valores_fichas[0])
+        except ValueError as error:
+            raise ValueError(
+                f"Línea {numero_linea}: M debe ser un entero."
+            ) from error
+
+        if self.m <= 0:
+            raise ValueError(
+                f"Línea {numero_linea}: M debe ser mayor que cero."
+            )
+
+        lineas_fichas = lineas_limpias[2:]
+        if len(lineas_fichas) != self.m:
+            raise ValueError(
+                f"Se declararon {self.m} fichas, pero se encontraron {len(lineas_fichas)}."
+            )
+
+        # Extraer y validar la secuencia de fichas
         self.pieces = []
-        for i in range(2, 2 + self.m):
-            color, valor = map(int, lineas_limpias[i].split())
+        for numero_linea, linea in lineas_fichas:
+            valores_ficha = linea.split()
+            if len(valores_ficha) != 2:
+                raise ValueError(
+                    f"Línea {numero_linea}: la ficha debe contener exactamente dos enteros."
+                )
+
+            try:
+                color, valor = map(int, valores_ficha)
+            except ValueError as error:
+                raise ValueError(
+                    f"Línea {numero_linea}: el color y el valor deben ser enteros."
+                ) from error
+
+            if not 1 <= color <= self.k:
+                raise ValueError(
+                    f"Línea {numero_linea}: el color debe estar entre 1 y {self.k}."
+                )
+
+            if valor < 1:
+                raise ValueError(
+                    f"Línea {numero_linea}: el valor de la ficha debe ser mayor o igual que 1."
+                )
+
             self.pieces.append((color, valor))
 
-        # Inicializar el tablero vacío de NxN[cite: 1]
+        # Inicializar el tablero vacío de NxN
         self.board = [[None for _ in range(self.n)] for _ in range(self.n)]
         self.next_piece_index = 0
 

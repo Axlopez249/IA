@@ -1,6 +1,7 @@
 """Punto de entrada por línea de comandos para TileUp."""
 
 import argparse
+import os
 import sys
 
 from EngineGame import GameEngine
@@ -71,6 +72,14 @@ def main():
     args = parse_arguments()
 
     try:
+        if args.time_limit <= 0:
+            raise ValueError("El límite de tiempo debe ser mayor que cero.")
+
+        if not os.path.isfile(args.instance_path):
+            raise ValueError(
+                f"El archivo de instancia no existe: {args.instance_path}"
+            )
+
         engine = GameEngine(args.instance_path)
         agent = build_agent(engine, args.agent, args.seed, args.time_limit)
         engine.agent = agent
