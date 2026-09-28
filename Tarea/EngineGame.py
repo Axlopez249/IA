@@ -60,7 +60,7 @@ class GameEngine:
             
             # Consultar al agente (asumimos que tendrá un método 'get_action')
             # El motor es independiente, solo le pide coordenadas al agente
-            action = self.agent.get_action(state, self.get_valid_actions())
+            action = self.agent.get_action(state, self.get_valid_actions(state))
             
             if action is None:
                 # Si el agente no encuentra movimientos o falla, detenemos el juego
@@ -69,7 +69,7 @@ class GameEngine:
             row, col = action
             
             # Verificación de seguridad para evitar que el agente haga un movimiento ilegal
-            if not self.is_valid_position(row, col):
+            if not self.is_valid_position(row, col, state):
                 raise ValueError(f"El agente intentó un movimiento ilegal en la celda ({row}, {col})")
             
             # Aplicar colocación y reglas de fusión
@@ -113,75 +113,133 @@ class GameEngine:
         self.board = [[None for _ in range(self.n)] for _ in range(self.n)]
         self.next_piece_index = 0
 
-    def get_next_piece(self) -> Optional[tuple[int, int]]:
+    def get_next_piece(self, state=None) -> Optional[tuple[int, int]]:
         # Devuelve la siguiente ficha pendiente de la secuencia.
-        if self.next_piece_index >= self.m:
+        if state is None:
+            next_piece_index = self.next_piece_index
+            pieces = self.pieces
+            m = self.m
+        else:
+            next_piece_index = state['next_piece_index']
+            pieces = state['pieces']
+            m = state['m']
+
+        if next_piece_index >= m:
             return None
-        return self.pieces[self.next_piece_index]
+        return pieces[next_piece_index]
 
     # ------------------------------------------------------------------
     # ESTADO
     # ------------------------------------------------------------------
 
-    def get_state(self):
-        # Devuelve una representación del estado actual.
+    # Funcion que devuelve una copia independiente del estado real o del estado indicado,
+    # para evitar que el agente modifique el estado real por accidente
+    def get_state(self, state=None):
+        # Devuelve una copia independiente del estado real o del estado indicado.
         # Se clona la matriz del tablero para evitar que el agente modifique el real por accidente.
-        board_copy = [[cell for cell in row] for row in self.board]
+        source = state
+        if source is None:
+            source = {
+                'board': self.board,
+                'next_piece_index': self.next_piece_index,
+                'pieces': self.pieces,
+                'n': self.n,
+                'k': self.k,
+                'm': self.m
+            }
+
+        board_copy = [[cell for cell in row] for row in source['board']]
         return {
             'board': board_copy,
-            'next_piece_index': self.next_piece_index,
-            'pieces': self.pieces,
-            'n': self.n,
-            'k': self.k,
-            'm': self.m
+            'next_piece_index': source['next_piece_index'],
+            'pieces': list(source['pieces']),
+            'n': source['n'],
+            'k': source['k'],
+            'm': source['m']
         }
 
     # ------------------------------------------------------------------
     # ACCIONES / COLOCACIÓN
     # ------------------------------------------------------------------
 
-    def get_valid_actions(self):
+    # Funcion que devuelve las posiciones vacías donde puede colocarse la siguiente ficha, ya sea en el tablero real o en un estado simulado
+    def get_valid_actions(self, state=None):
         # Devuelve las posiciones vacías donde puede colocarse
+        board, n = self._board_and_size(state)
         acciones = []
-        for r in range(self.n):
-            for c in range(self.n):
-                if self.board[r][c] is None:
+        for r in range(n):
+            for c in range(n):
+                if board[r][c] is None:
                     acciones.append((r, c))
         return acciones
 
-    def is_valid_position(self, row, col):
+    # Funcion que determina si una posición es válida para colocar una ficha, ya sea en el tablero real o en un estado simulado
+    def is_valid_position(self, row, col, state=None):
         # Determina si una posición está dentro del tablero
-        if 0 <= row < self.n and 0 <= col < self.n:
-            return self.board[row][col] is None
+        board, n = self._board_and_size(state)
+        if 0 <= row < n and 0 <= col < n:
+            return board[row][col] is None
         return False
 
-    def apply_action(self, state, action):
-        # Aplica una acción sobre una representación de estado.
-        #
-        # Esta función es especialmente útil para que el agente
-        # pueda SIMULAR acciones durante la búsqueda sin modificar
-        # el tablero real de la partida.
-        pass
+    # Funcion para retornar el tablero y su tamaño, ya sea del estado real o de un estado simulado
+    def _board_and_size(self, state=None):
+        if state is None:
+            return self.board, self.n
+        return state['board'], state['n']
 
-    def place_piece(self, row, col, piece):
-        # Coloca físicamente la ficha elegida en el tablero real.
-        self.board[row][col] = piece
+    # Funcion para colocar una ficha en el tablero real o en un estado simulado
+    def place_piece(self, row, col, piece, state=None):
+        # Coloca una ficha en el tablero real o en el estado indicado.
+        board, _ = self._board_and_size(state)
+        board[row][col] = piece
 
-    def update_board(self, row, col, piece):
-        # Ejecuta la actualización completa del tablero después de colocar una ficha:
-        self.place_piece(row, col, piece)
-        component = self.get_connected_component(row, col)
+    # Funcion para actualizar el tablero real o un estado simulado, aplicando la colocación y las reglas de fusión
+    def update_board(self, row, col, piece, state=None):
+        # Ejecuta la actualización completa del tablero real o simulado.
+        self.place_piece(row, col, piece, state)
+        component = self.get_connected_component(row, col, state)
 
         if len(component) >= 2:
-            self.apply_fusion(component, (row, col))
+            self.apply_fusion(component, (row, col), state)
+
+        return state
+
+    # Funcion que actualiza el estado simulado a partir de una acción, 
+    # consumiendo la siguiente ficha y aplicando la colocación y las reglas de fusión
+    def update_state(self, state, action):
+        # Devuelve un nuevo estado resultante de consumir la siguiente ficha.
+        # El estado recibido nunca se modifica, lo que permite crear ramas.
+        next_state = self.get_state(state)
+        next_piece = self.get_next_piece(next_state)
+        if next_piece is None:
+            raise ValueError("No quedan fichas para aplicar la acción.")
+
+        try:
+            row, col = action
+        except (TypeError, ValueError) as error:
+            raise ValueError("La acción debe ser una tupla (fila, columna).") from error
+
+        if not self.is_valid_position(row, col, next_state):
+            raise ValueError(f"La acción ({row}, {col}) no es válida.")
+
+        self.update_board(row, col, next_piece, next_state)
+        next_state['next_piece_index'] += 1
+        return next_state
+
+    # Funcion que aplica una acción al estado, alias de update_state para los agentes que ya usan este nombre
+    def apply_action(self, state, action):
+        # Alias de update_state para los agentes que ya usan este nombre.
+        return self.update_state(state, action)
 
     # ------------------------------------------------------------------
     # FUSIÓN
     # ------------------------------------------------------------------
 
-    def get_connected_component(self, row, col):
+    # Funcion que devuelve la componente conexa de fichas del mismo color a partir de una posición, ya sea en el tablero real o en un estado simulado
+    def get_connected_component(self, row, col, state=None):
         # Búsqueda en Profundidad (DFS) para encontrar vecinos del mismo color
-        color_colocado = self.board[row][col][0]
+        board, n = self._board_and_size(state)
+        color_colocado = board[row][col][0]
         visitados = set()
         componente = []
         pila = [(row, col)]
@@ -196,41 +254,47 @@ class GameEngine:
                 nr, nc = r + dr, c + dc
                 
                 # Si está dentro del tablero y no es vacía
-                if 0 <= nr < self.n and 0 <= nc < self.n:
-                    if (nr, nc) not in visitados and self.board[nr][nc] is not None:
-                        color_vecino = self.board[nr][nc][0]
+                if 0 <= nr < n and 0 <= nc < n:
+                    if (nr, nc) not in visitados and board[nr][nc] is not None:
+                        color_vecino = board[nr][nc][0]
                         if color_vecino == color_colocado:
                             visitados.add((nr, nc))
                             pila.append((nr, nc))
                             
         return componente
-    
-    def apply_fusion(self, component, position):
+
+    # Funcion que aplica la fusión de fichas en el tablero real o en un estado simulado, sumando sus valores y dejando una única ficha
+    def apply_fusion(self, component, position, state=None):
+        board, _ = self._board_and_size(state)
         row, col = position
-        color = self.board[row][col][0]
+        color = board[row][col][0]
         
         # Sumar los valores de todas las fichas en la componente conexa[cite: 1]
-        suma_total = sum(self.board[r][c][1] for r, c in component)
+        suma_total = sum(board[r][c][1] for r, c in component)
         
         # Retirar todas las fichas del tablero[cite: 1]
         for r, c in component:
-            self.board[r][c] = None
+            board[r][c] = None
             
         # Dejar una única ficha en la celda original con la suma[cite: 1]
-        self.board[row][col] = (color, suma_total)
+        board[row][col] = (color, suma_total)
 
     # ------------------------------------------------------------------
     # CONDICIONES DE TERMINACIÓN
     # ------------------------------------------------------------------
 
-    def is_victory(self):
+    def is_victory(self, state=None):
         # Determina si se consumieron todas las fichas de la secuencia.
-        return self.next_piece_index >= self.m
+        next_piece_index = self.next_piece_index if state is None else state['next_piece_index']
+        m = self.m if state is None else state['m']
+        return next_piece_index >= m
 
-    def is_defeat(self):
+    def is_defeat(self, state=None):
         # Determina si quedan fichas pendientes y no existe ninguna celda vacía donde colocar la siguiente.
-        quedan_fichas = self.next_piece_index < self.m
-        hay_espacio = len(self.get_valid_actions()) > 0
+        next_piece_index = self.next_piece_index if state is None else state['next_piece_index']
+        m = self.m if state is None else state['m']
+        quedan_fichas = next_piece_index < m
+        hay_espacio = len(self.get_valid_actions(state)) > 0
         return quedan_fichas and not hay_espacio
 
     # ------------------------------------------------------------------
