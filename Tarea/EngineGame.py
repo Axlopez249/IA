@@ -31,7 +31,7 @@ from typing import Any, Optional
 class GameEngine:
     """Motor principal que controla la ejecución de una partida de TileUp."""
 
-    def __init__(self, instance_path: str, agent: Any):
+    def __init__(self, instance_path: str, agent: Any = None):
         # Carga la instancia y prepara el tablero, la secuencia de fichas
         # y la información necesaria para ejecutar la partida.
         self.agent = agent

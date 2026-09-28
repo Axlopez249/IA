@@ -6,7 +6,7 @@ import sys
 from EngineGame import GameEngine
 
 
-def build_agent(agent_name: str, seed: int, time_limit: float):
+def build_agent(engine: GameEngine, agent_name: str, seed: int, time_limit: float):
     """Crea el agente seleccionado por la línea de comandos.
 
     Los módulos concretos se incorporarán cuando se implementen los agentes.
@@ -15,12 +15,20 @@ def build_agent(agent_name: str, seed: int, time_limit: float):
         if agent_name == "search":
             from agent import SearchAgent
 
-            return SearchAgent(seed=seed, time_limit=time_limit)
+            return SearchAgent(
+                engine=engine,
+                seed=seed,
+                time_limit=time_limit,
+            )
 
         if agent_name == "evolution":
             from evolutionary_agent import EvolutionaryAgent
 
-            return EvolutionaryAgent(seed=seed, time_limit=time_limit)
+            return EvolutionaryAgent(
+                engine=engine,
+                seed=seed,
+                time_limit=time_limit,
+            )
     except ModuleNotFoundError as error:
         raise ValueError(
             f"No se encontró el módulo del agente '{agent_name}'. "
@@ -63,8 +71,9 @@ def main():
     args = parse_arguments()
 
     try:
-        agent = build_agent(args.agent, args.seed, args.time_limit)
-        engine = GameEngine(args.instance_path, agent)
+        engine = GameEngine(args.instance_path)
+        agent = build_agent(engine, args.agent, args.seed, args.time_limit)
+        engine.agent = agent
         engine.run()
         engine.write_solution(args.output)
     except (OSError, ValueError) as error:
