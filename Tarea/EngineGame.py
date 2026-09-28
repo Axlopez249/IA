@@ -52,10 +52,10 @@ class GameEngine:
     def run(self):
         # El ciclo continúa mientras no haya victoria ni derrota
         while not self.is_victory() and not self.is_defeat():
-            # Obtener la siguiente ficha de la secuencia
+            # Obtener la siguiente ficha de la secuencia (tupla (color, valor))
             piece = self.get_next_piece()
             
-            # Construir el estado actual
+            # Construir el estado actual retorna un json con el tablero, la secuencia de fichas y el índice de la siguiente ficha
             state = self.get_state()
             
             # Consultar al agente (asumimos que tendrá un método 'get_action')
@@ -68,7 +68,7 @@ class GameEngine:
                 
             row, col = action
             
-            # Verificación de seguridad para evitar que el agente haga trampa
+            # Verificación de seguridad para evitar que el agente haga un movimiento ilegal
             if not self.is_valid_position(row, col):
                 raise ValueError(f"El agente intentó un movimiento ilegal en la celda ({row}, {col})")
             
