@@ -1,0 +1,24 @@
+Para el algoritmo de A*
+
+- Estado: Una tupla conformada por el índice de la ficha actual y el estado de la matriz del tablero.
+
+- Operador: Colocar la ficha correspondiente al índice actual en cualquier celda vacía, resolviendo las fusiones ortogonales subsecuentes.
+
+- Costo de la acción g(n): Cantidad de celdas ocupadas actualmente en el tablero.
+
+- Heurística h(n): Cantidad de fichas restantes por colocar (M - índice_actual).
+
+- Justificación de admisibilidad: Esta heurística no es admisible, lo cual es aceptable según las instrucciones si se declara explícitamente. No es admisible porque asume que cada ficha restante ocupará una celda nueva, sobrestimando el costo real (ya que las fusiones podrían evitar que se ocupen nuevas celdas o incluso reducir las existentes).
+
+- Garantía que se pierde: Se pierde la garantía matemática de encontrar la solución óptima absoluta (el tablero con el mínimo número de celdas ocupadas posible).
+
+- Razón de renuncia: Se adopta esta heurística para guiar agresivamente la búsqueda hacia la meta (colocar las $M$ fichas) y evitar que el agente agote el límite de tiempo explorando todas las combinaciones tempranas de fusión, permitiendo resolver instancias más grandes de forma eficiente.
+
+
+LO QUE FALTA:
+
+Imprimir las métricas en consola: El profesor pide que, al terminar la partida, el programa imprima en la terminal la cantidad de fichas colocadas, celdas ocupadas, valor mayor, tiempo transcurrido y medida de esfuerzo (nodos expandidos). Hay que agregar un par de print() en la función main() de main.py leyendo engine.agent.nodos_expandidos y usando la librería time.   
+
+Crear el Agente Evolutivo (evolutionary_agent.py): Falta diseñar un algoritmo genético. Un individuo puede representarse simplemente como una lista de M tuplas con las coordenadas (fila, columna) donde el agente intentará colocar cada ficha.   
+
+El Validador Independiente: Hay que escribir un script separado que lea una instancia y el archivo solucion.txt que se generan, para comprobar que los movimientos sean legales sin usar las funciones de decisión de los agentes.
