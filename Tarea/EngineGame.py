@@ -380,22 +380,24 @@ class GameEngine:
         # Devuelve las colocaciones realizadas en el orden en que se consumieron las fichas.
         return self.solution
 
-    def get_occupied_cells(self):
-        # Devuelve la cantidad de celdas ocupadas al finalizar o en el estado actual.
+    def get_occupied_cells(self, state=None):
+        # Devuelve la cantidad de celdas ocupadas en el tablero real o simulado.
+        board, n = self._board_and_size(state)
         count = 0
-        for r in range(self.n):
-            for c in range(self.n):
-                if self.board[r][c] is not None:
+        for r in range(n):
+            for c in range(n):
+                if board[r][c] is not None:
                     count += 1
         return count
 
-    def get_max_piece_value(self):
-        # Encuentra la ficha de mayor valor presente en el tablero
+    def get_max_piece_value(self, state=None):
+        # Encuentra la ficha de mayor valor presente en el tablero real o simulado.
+        board, n = self._board_and_size(state)
         max_val = 0
-        for r in range(self.n):
-            for c in range(self.n):
-                if self.board[r][c] is not None:
-                    valor = self.board[r][c][1]
+        for r in range(n):
+            for c in range(n):
+                if board[r][c] is not None:
+                    valor = board[r][c][1]
                     if valor > max_val:
                         max_val = valor
         return max_val
