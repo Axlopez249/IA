@@ -69,6 +69,9 @@ class EvolutionaryAgent:
         # Se aplica tanto el operador de crossover como el de mutación para generar nuevos individuos a partir de los seleccionados.
         offspring = self.create_offspring(selected, state)
 
+        # Se evalúa la descendencia generada para calcular el fitness de cada individuo.
+        offspring = self.evaluate_population(offspring)
+
         # Se devuelve el mejor individuo encontrado.
         return self.get_best_individual(offspring)
 
@@ -289,7 +292,7 @@ class EvolutionaryAgent:
         max_tile = self.engine.get_max_piece_value(state_copy)
 
         individio_nuevo = (posiciones, state_copy, fusion, max_tile, free_cells)
-        
+
         return (individio_nuevo)
 
     def mutate(self, individual, state):
