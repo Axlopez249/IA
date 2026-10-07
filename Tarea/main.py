@@ -2,7 +2,9 @@
 
 import argparse
 import os
+import random
 import sys
+import time
 
 from EngineGame import GameEngine
 
@@ -70,6 +72,7 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
+    random.seed(args.seed)
 
     try:
         if args.time_limit <= 0:
@@ -83,8 +86,21 @@ def main():
         engine = GameEngine(args.instance_path)
         agent = build_agent(engine, args.agent, args.seed, args.time_limit)
         engine.agent = agent
+        tiempo_inicio = time.perf_counter()
         engine.run()
+        tiempo_transcurrido = time.perf_counter() - tiempo_inicio
         engine.write_solution(args.output)
+
+        if hasattr(engine.agent, "nodos_expandidos"):
+            esfuerzo = engine.agent.nodos_expandidos
+        else:
+            esfuerzo = engine.agent.evaluaciones_aptitud
+
+        print(f"colocadas={len(engine.solution)}")
+        print(f"ocupadas={engine.get_occupied_cells()}")
+        print(f"mayor={engine.get_max_piece_value()}")
+        print(f"tiempo={tiempo_transcurrido:.6f}")
+        print(f"esfuerzo={esfuerzo}")
     except (OSError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1

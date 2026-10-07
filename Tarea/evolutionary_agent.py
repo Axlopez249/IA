@@ -1,5 +1,6 @@
 import random
 import copy
+import time
 
 class EvolutionaryAgent:
 
@@ -14,6 +15,12 @@ class EvolutionaryAgent:
 
         # Límite de tiempo
         self.time_limit = time_limit
+        self.tiempo_inicio = time.perf_counter()
+        self.limite_tiempo_seguro = max(
+            0.0,
+            time_limit - max(0.001, time_limit * 0.02),
+        )
+        self.tiempo_transcurrido = 0.0
 
         # Parámetros del algoritmo evolutivo
         self.population_size = 100
@@ -35,17 +42,31 @@ class EvolutionaryAgent:
         # Mejor individuo encontrado
         self.best_individual = None
 
+        # Medida de esfuerzo requerida
+        self.evaluaciones_aptitud = 0
+
     # ==========================================================
     # INTERFAZ DEL AGENTE
     # ==========================================================
 
-    def get_action(self, state):
+    def get_action(self, state, valid_actions):
         """
         Recibe el estado actual y devuelve una única acción
         para la siguiente ficha.
         """
 
-        return self.evolve(state)
+        if self.plan:
+            return self.plan.pop(0)
+
+        if not valid_actions or self._tiempo_agotado():
+            return None
+
+        self.plan = self.evolve(state)
+
+        if self.plan:
+            return self.plan.pop(0)
+
+        return None
     
 
     # ==========================================================
@@ -60,20 +81,25 @@ class EvolutionaryAgent:
         # Se crea la población inicial de individuos tomando como punto de inicio el estado actual del juego.
         population = self.create_population(state)
 
-        # Se evalúa la población inicial para calcular el fitness de cada individuo.
-        population = self.evaluate_population(population)
+        while population and not self._tiempo_agotado():
+            # Se evalúa la población para calcular el fitness de cada individuo.
+            evaluated_population = self.evaluate_population(population)
+            if not evaluated_population:
+                break
 
-        # Se seleccionan los mejores individuos para la siguiente generación.
-        selected = self.select(population)
+            # Se seleccionan los mejores individuos para la siguiente generación.
+            selected = self.select(evaluated_population)
 
-        # Se aplica tanto el operador de crossover como el de mutación para generar nuevos individuos a partir de los seleccionados.
-        offspring = self.create_offspring(selected, state)
+            # Se aplica tanto el operador de crossover como el de mutación para generar nuevos individuos a partir de los seleccionados.
+            population = self.create_offspring(selected, state)
 
-        # Se evalúa la descendencia generada para calcular el fitness de cada individuo.
-        offspring = self.evaluate_population(offspring)
+        self.tiempo_transcurrido = time.perf_counter() - self.tiempo_inicio
 
-        # Se devuelve el mejor individuo encontrado.
-        return self.get_best_individual(offspring)
+        if self.best_individual is None:
+            return []
+
+        # Se devuelve el plan de acciones del mejor individuo encontrado.
+        return self.best_individual[0][5]
 
     # ==========================================================
     # POBLACIÓN
@@ -87,42 +113,12 @@ class EvolutionaryAgent:
         """
         population = []
 
+        fichas_restantes = state["m"] - state["next_piece_index"]
+
         for _ in range(self.population_size):
-            individual = []
-            state_copy = copy.deepcopy(state)
-            fusion = 0
-            
-            for _ in range(state_copy["m"] - state_copy["next_piece_index"]):
-                #Verificar si se tienen celdas libres para colocar la ficha actual, si no hay celdas libres, se rompe el bucle y se termina de crear el individuo.
-                valid_actions = self.engine.get_valid_actions(state_copy)
-                if not valid_actions:
-                    break
-                
-                # Se obtiene el tamaño del tablero antes de aplicar la acción para verificar si se produce una fusión.
-                occupied_before = self.engine.get_occupied_cells(state_copy)
-                
-                # Se crea una acción aleatoria para la ficha actual y se agrega al individuo.
-                action = self.create_random_position(state_copy) 
-                individual.append(action)
-
-                # Se actualiza el estado del juego con la acción seleccionada para simular el efecto de la acción en el juego.
-                # Verificando de una vez si la acción generada es válida para el estado actual del juego.
-                state_copy = self.engine.update_state(state_copy, action)
-                occupied_after = self.engine.get_occupied_cells(state_copy)
-
-                # Se verifica si la acción generada produjo una fusión en el juego y se actualiza el contador de fusiones.
-                if occupied_before == occupied_after:
-                    fusion += 1
-
-
-            # Sacar celdas libres y max tile
-            free_cells = (state_copy["n"] ** 2 - self.engine.get_occupied_cells(state_copy)
-)           # Sacar el valor máximo de ficha en el estado final del individuo.
-            max_tile = self.engine.get_max_piece_value(state_copy)
-
-            # Se agrega el individuo a la población junto con su estado final, número de fusiones,
-            # valor máximo de ficha y número de celdas libres.
-            population.append((individual,state_copy,fusion,max_tile,free_cells))
+            # Cada gen representa una proporción de la lista de celdas vacías.
+            genes = [random.random() for _ in range(fichas_restantes)]
+            population.append(self.simulate_individual(state, genes))
 
         return population
 
@@ -142,7 +138,31 @@ class EvolutionaryAgent:
         Simula todas las acciones de un individuo
         utilizando el motor del juego.
         """
-        pass
+        state_copy = copy.deepcopy(state)
+        actions = []
+        fusion = 0
+
+        for gene in genes:
+            valid_actions = self.engine.get_valid_actions(state_copy)
+            if not valid_actions or self._tiempo_agotado():
+                break
+
+            # El gen se convierte en un índice de una celda vacía para evitar jugadas ilegales.
+            indice = min(int(gene * len(valid_actions)), len(valid_actions) - 1)
+            action = valid_actions[indice]
+            occupied_before = self.engine.get_occupied_cells(state_copy)
+            state_copy = self.engine.update_state(state_copy, action)
+            occupied_after = self.engine.get_occupied_cells(state_copy)
+
+            actions.append(action)
+            if occupied_before == occupied_after:
+                fusion += 1
+
+        free_cells = state_copy["n"] ** 2 - self.engine.get_occupied_cells(state_copy)
+        max_tile = self.engine.get_max_piece_value(state_copy)
+
+        # Se agrega el plan de acciones al final para conservar la estructura de la tupla actual.
+        return (list(genes), state_copy, fusion, max_tile, free_cells, actions)
 
     # ==========================================================
     # EVALUACIÓN
@@ -155,8 +175,12 @@ class EvolutionaryAgent:
         """
         evaluated_population = []
         for candidate in population:
+            if self._tiempo_agotado() and evaluated_population:
+                break
+
             # se saca cada individuo de la población y se calcula su fitness a partir del estado final de su simulación.
             fitness = self.calculate_fitness(candidate)
+            self.evaluaciones_aptitud += 1
             # se agrega el individuo y su fitness a la lista de población evaluada.
             evaluated_population.append((candidate, fitness))
         return evaluated_population
@@ -166,7 +190,9 @@ class EvolutionaryAgent:
         Calcula qué tan bueno fue un individuo
         a partir del estado final de su simulación.
         """
-        fitness = (self.W_FUSIONS * individual[2]) + (self.W_MAX_TILE * individual[3]) + (self.W_FREE_CELLS * individual[4])
+        # Se prioriza consumir fichas y luego dejar la mayor cantidad de celdas libres.
+        fichas_colocadas = len(individual[5])
+        fitness = (fichas_colocadas * 1000000) + individual[4]
         return fitness
         
 
@@ -229,8 +255,8 @@ class EvolutionaryAgent:
         # Se hace el ciclo para generar descendencia hasta que se alcance el tamaño de población deseado.
         while len(offspring) < self.population_size:
 
-            parent1 = selected[i % len(selected)]
-            parent2 = selected[(i + 1) % len(selected)]
+            parent1 = selected[i % len(selected)][0]
+            parent2 = selected[(i + 1) % len(selected)][0]
 
             # Se realiza el crossover entre los padres para generar un hijo.
             child = self.crossover(parent1, parent2, state)
@@ -248,88 +274,50 @@ class EvolutionaryAgent:
         """
         Combina dos individuos para producir un hijo.
         """
-        individio_nuevo = []
+        genes_padre_1 = parent1[0]
+        genes_padre_2 = parent2[0]
 
-        # Con este for se carga la mitad de los genes del primer padre
-        posiciones = []
-        state_copy = copy.deepcopy(state)
-        fusion = 0
-        for i in range(0, len(parent1[0]) // 2):
-            # Consultar tamaño
-            occupied_before = self.engine.get_occupied_cells(state_copy)
+        if not genes_padre_1:
+            return self.simulate_individual(state, genes_padre_2)
 
-            posiciones.append(parent1[0][i])
-            state_copy = self.engine.update_state(state_copy, parent1[0][i])
+        if not genes_padre_2:
+            return self.simulate_individual(state, genes_padre_1)
 
-            occupied_after = self.engine.get_occupied_cells(state_copy)
-            if occupied_before == occupied_after:
-                fusion += 1
+        # Se carga la mitad de los genes del primer padre y la otra mitad del segundo padre.
+        punto_cruce = random.randint(1, min(len(genes_padre_1), len(genes_padre_2)))
+        genes_hijo = (
+            genes_padre_1[:punto_cruce]
+            + genes_padre_2[punto_cruce:]
+        )
 
-
-        # Con este for se carga la otra mitad de los genes del segundo padre
-        for i in range(len(parent2[0]) // 2, len(parent2[0])):
-
-            valid_actions = self.engine.get_valid_actions(state_copy)
-
-            if parent2[0][i] in valid_actions:
-                occupied_before = self.engine.get_occupied_cells(state_copy)
-
-                posiciones.append(parent2[0][i])
-                state_copy = self.engine.update_state(state_copy, parent2[0][i])
-
-                occupied_after = self.engine.get_occupied_cells(state_copy)
-                if occupied_before == occupied_after:
-                    fusion += 1
-            else:
-                # Si la acción del segundo padre ya está en el hijo, se genera una acción aleatoria para evitar duplicados.
-                action = self.create_random_position(state_copy)
-                posiciones.append(action)
-                state_copy = self.engine.update_state(state_copy, action)
-
-        # Sacar celdas libres y max tile
-        free_cells = (state_copy["n"] ** 2 - self.engine.get_occupied_cells(state_copy))
-        # Sacar el valor máximo de ficha en el estado final del individuo.
-        max_tile = self.engine.get_max_piece_value(state_copy)
-
-        individio_nuevo = (posiciones, state_copy, fusion, max_tile, free_cells)
-
-        return (individio_nuevo)
+        return self.simulate_individual(state, genes_hijo)
 
     def mutate(self, individual, state):
         """
         Aplica mutaciones a un individuo.
         """
-        # Implementar lógica de mutación
-        # Se crea una copia del individuo para no modificar el original.
-        state_copy = copy.deepcopy(individual[1])
+        # Se crea una copia de los genes para no modificar el individuo original.
+        genes = list(individual[0])
 
-        random_position = self.create_random_position(state_copy)
-        random_index = random.randint(0, len(individual[0]) - 1)
-        fusion = individual[2]
+        if not genes:
+            return individual
 
-        occupied_before = self.engine.get_occupied_cells(state_copy)
-        # Reemplazar el gen en la posición aleatoria con la posición aleatoria
-        state_copy = self.update_individual(state_copy, random_index, random_position)
+        # Se reemplaza aleatoriamente un gen por otro valor entre 0.0 y 1.0.
+        if random.random() < self.mutation_rate:
+            random_index = random.randint(0, len(genes) - 1)
+            genes[random_index] = random.random()
 
-        occupied_after = self.engine.get_occupied_cells(state_copy)
-        if occupied_before == occupied_after:
-            fusion += 1
-
-        # Sacar celdas libres y max tile
-        free_cells = (state_copy["n"] ** 2 - self.engine.get_occupied_cells(state_copy))
-        # Sacar el valor máximo de ficha en el estado final del individuo.
-        max_tile = self.engine.get_max_piece_value(state_copy)
-
-        # Se cambia el gen en la posición aleatoria con la nueva posición aleatoria y se actualiza el estado del individuo.
-        individual[0][random_index] = random_position
-
-        return (individual[0], state_copy, fusion, max_tile, free_cells)
+        return self.simulate_individual(state, genes)
 
     
 
     # ==========================================================
     # UTILIDADES
     # ==========================================================
+
+    def _tiempo_agotado(self):
+        """Determina si se alcanzó el límite global de tiempo del agente."""
+        return time.perf_counter() - self.tiempo_inicio >= self.limite_tiempo_seguro
 
     def update_individual(self, state, index, position):
         """

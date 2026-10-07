@@ -15,13 +15,22 @@ class SearchAgent:
         self.engine = engine
         self.seed = seed
         self.time_limit = time_limit
+        self.limite_tiempo_seguro = max(
+            0.0,
+            time_limit - max(0.001, time_limit * 0.02),
+        )
         self.plan = []
         self.nodos_expandidos = 0 # Medida de esfuerzo requerida
+        self.tiempo_inicio = time.perf_counter()
+        self.tiempo_transcurrido = 0.0
 
     def get_action(self, state, valid_actions):
         """Devuelve la siguiente acción (fila, columna) a ejecutar."""
         if self.plan:
             return self.plan.pop(0)
+
+        if self._tiempo_agotado():
+            return None
 
         self.plan = self._realizar_busqueda(state)
 
@@ -33,9 +42,6 @@ class SearchAgent:
     #En general,
     def _realizar_busqueda(self, estado_inicial):
         """Contiene la lógica central del algoritmo de búsqueda A*."""
-        tiempo_inicio = time.time()
-        self.nodos_expandidos = 0
-
         # Estados que se van a explorar
         cola = []
         contador = 0 
@@ -56,7 +62,7 @@ class SearchAgent:
 
         while cola:
             #Validacion si se ha superado el tiempo limite de busqueda del agente
-            if time.time() - tiempo_inicio >= self.time_limit:
+            if time.perf_counter() - self.tiempo_inicio >= self.limite_tiempo_seguro:
                   break
 
             # se extrae la informacion del nodo con el menor valor de f(n) de la cola de prioridad
@@ -72,6 +78,7 @@ class SearchAgent:
 
             # Si se ha alcanzado la profundidad máxima (es decir, se han consumido todas las fichas), se devuelve el camino encontrado.
             if profundidad >= estado_inicial["m"]:
+                self.tiempo_transcurrido = time.perf_counter() - self.tiempo_inicio
                 return camino
 
             #Convierte el estado actual en un hash para poder guardarlo en el set de visitados y evitar ciclos.
@@ -108,7 +115,12 @@ class SearchAgent:
                 except ValueError:
                     continue
 
+        self.tiempo_transcurrido = time.perf_counter() - self.tiempo_inicio
         return mejor_plan_parcial
+
+    def _tiempo_agotado(self):
+        """Determina si se alcanzó el límite global de tiempo del agente."""
+        return time.perf_counter() - self.tiempo_inicio >= self.limite_tiempo_seguro
 
     def _contar_ocupadas(self, board):
         """Calcula g(n): la cantidad actual de celdas ocupadas."""
