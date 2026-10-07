@@ -1,5 +1,0 @@
-4 3 # tablero
-
-2 # cantidad de fichas
-1 2 # primera ficha
-2 1 # segunda ficha
