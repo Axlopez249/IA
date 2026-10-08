@@ -122,116 +122,56 @@ class ConfiguracionEscalabilidad:
                     self.configuraciones.append((n, k, self.m, seed, ruta))
 
                     # Ejecutar agentes para cada configuración
-                    self.execute_agent(
+                    datos_agente = self.execute_agent(
                         "search",
                         ruta,
-                        seed,
-                        n,
-                        k,
-                        self.m,
                         seed,
                         self.time,
                         solution_path=os.path.join(
                             modulo_dir, f"solution_search_{nombre_archivo}"
                         ),
                     )
-                    self.execute_agent(
+                    self.datosSearch.append(
+                        {
+                            "agente": "search",
+                            "n": n,
+                            "k": k,
+                            "m": self.m,
+                            "seed": seed,
+                            "solution_path": os.path.join(
+                                modulo_dir, f"solution_search_{nombre_archivo}"
+                            ),
+                            **datos_agente,
+                        }
+                    )
+                    datos_agente = self.execute_agent(
                         "evolution",
                         ruta,
-                        seed,
-                        n,
-                        k,
-                        self.m,
                         seed,
                         self.time,
                         solution_path=os.path.join(
                             modulo_dir, f"solution_evolution_{nombre_archivo}"
                         ),
                     )
-
-        # Se llama a la funcion para obtener los datos de cada agente para cada configuración
-        self.obtener_datos_agentes()
+                    self.datosEvo.append(
+                        {
+                            "agente": "evolution",
+                            "n": n,
+                            "k": k,
+                            "m": self.m,
+                            "seed": seed,
+                            "solution_path": os.path.join(
+                                modulo_dir, f"solution_evolution_{nombre_archivo}"
+                            ),
+                            **datos_agente,
+                        }
+                    )
 
         # Se llama a la funcion para generar un csv con los datos obtenidos de cada agente para cada configuración
         self.generar_csv()
 
-        # Se genera el reporte y la gráfica a partir de los datos obtenidos.
+        # Se genera el reporte a partir de los datos obtenidos.
         self.generar_reporte()
-
-    def obtener_datos_agentes(self):
-        """
-        Recorre los archivos de solución generados y guarda sus métricas.
-        """
-        self.datosSearch = []
-        self.datosEvo = []
-
-        for n, k, m, seed, ruta_instancia in self.configuraciones:
-            nombre_archivo = os.path.basename(ruta_instancia)
-
-            for nombre_agente, datos_agente in (("search", self.datosSearch),("evolution", self.datosEvo),
-            ):
-                # Nombre del archivo de solución generado por el agente
-                solution_path = os.path.join(
-                    self.base_dir,
-                    "modulo",
-                    f"solution_{nombre_agente}_{nombre_archivo}",
-                )
-
-                # Se abre el archivo de solución y se leen las métricas del agente
-                try:
-                    with open(solution_path, "r", encoding="utf-8") as file:
-                        lineas = file.readlines()
-                except OSError as error:
-                    raise ValueError(
-                        f"No se pudo leer el archivo de solución: "
-                        f"{solution_path}"
-                    ) from error
-
-                resumen = next(
-                    (
-                        linea.strip()
-                        for linea in reversed(lineas)
-                        if linea.strip().startswith("#")
-                    ),
-                    None,
-                )
-                if resumen is None:
-                    raise ValueError(
-                        f"El archivo de solución no contiene métricas: "
-                        f"{solution_path}"
-                    )
-
-                # Diccionario para almacenar las métricas del agente
-                metricas = {}
-                for clave, valor in re.findall(
-                    r"([A-Za-z_]+)\s*=\s*(-?\d+)",
-                    resumen.lstrip("#"),
-                ):
-                    metricas[clave] = int(valor)
-
-                metricas_requeridas = ("colocadas", "ocupadas", "mayor")
-                faltantes = [
-                    clave for clave in metricas_requeridas
-                    if clave not in metricas
-                ]
-                if faltantes:
-                    raise ValueError(
-                        f"Faltan métricas {faltantes} en {solution_path}"
-                    )
-
-                datos_agente.append(
-                    {
-                        "agente": nombre_agente,
-                        "n": n,
-                        "k": k,
-                        "m": m,
-                        "seed": seed,
-                        "solution_path": solution_path,
-                        "colocadas": metricas["colocadas"],
-                        "ocupadas": metricas["ocupadas"],
-                        "mayor": metricas["mayor"],
-                    }
-                )
 
     def generar_csv(self):
         """
@@ -252,6 +192,8 @@ class ConfiguracionEscalabilidad:
             "colocadas",
             "ocupadas",
             "mayor",
+            "tiempo",
+            "esfuerzo",
         ]
 
         try:
@@ -268,11 +210,10 @@ class ConfiguracionEscalabilidad:
 
     def generar_reporte(self):
         """
-        Genera un reporte textual y una gráfica SVG con las tendencias.
+        Genera un reporte textual con las tendencias.
 
-        Una ejecución se considera incompleta cuando colocadas < M. El tiempo
-        exacto no está disponible en el archivo de solución, por lo que esta
-        medida identifica el comportamiento observado al agotar el límite.
+        Una ejecución se considera incompleta cuando colocadas < M. Las
+        métricas de tiempo se toman de la salida del subproceso.
         """
         datos = self.datosSearch + self.datosEvo
         if not datos:
@@ -281,17 +222,14 @@ class ConfiguracionEscalabilidad:
         ruta_reporte = os.path.join(
             self.base_dir, "reporte", "reporte_escalabilidad.txt"
         )
-        ruta_grafica = os.path.join(
-            self.base_dir, "reporte", "grafica_escalabilidad.svg"
-        )
         os.makedirs(os.path.dirname(ruta_reporte), exist_ok=True)
         lineas = [
             "REPORTE DE ESCALABILIDAD DE TILEUP",
             "=================================",
             "",
             "Criterio: una ejecución se considera incompleta si colocadas < M.",
-            "El tiempo exacto no se conserva en los archivos de solución;",
-            "por ello, la terminación se analiza mediante este criterio.",
+            "Las métricas y el tiempo se obtienen directamente de la salida",
+            "capturada de cada subproceso.",
             "",
         ]
 
@@ -346,14 +284,12 @@ class ConfiguracionEscalabilidad:
         try:
             with open(ruta_reporte, "w", encoding="utf-8") as file:
                 file.write("\n".join(lineas) + "\n")
-            self._generar_grafica_svg(datos, ruta_grafica)
         except OSError as error:
             raise ValueError(
                 "No se pudo escribir el reporte de escalabilidad."
             ) from error
 
         print(f"Reporte generado: {ruta_reporte}")
-        print(f"Gráfica generada: {ruta_grafica}")
 
     def _interpretar_reporte(self, datos):
         """
@@ -418,97 +354,11 @@ class ConfiguracionEscalabilidad:
             )
         return lineas
 
-    def _generar_grafica_svg(self, datos, ruta_grafica):
-        """
-        Genera una gráfica SVG de celdas ocupadas promedio según N.
-        """
-        por_agente = {}
-        # Se toman en cuenta los 2 agentes y se van recorriendo los datos
-        for agente in ("search", "evolution"):
-            grupos = {}
-            # Se toma cada dato del agente y se agrupa por N para calcular el promedio de celdas ocupadas
-            for dato in datos:
-                # Si el agente coincide con el dato, se agrega al grupo correspondiente por N
-                if dato["agente"] == agente:
-                    # Por N agrega cantidad de celdas ocupadas al grupo correspondiente
-                    grupos.setdefault(dato["n"], []).append(dato["ocupadas"])
-            # Cambia de llave, valor a pares pero manteniendo la llave como N y el valor como promedio de celdas ocupadas
-            por_agente[agente] = {
-                n: statistics.mean(valores) for n, valores in grupos.items()
-            }
-
-        # Esto es para generar la gráfica SVG, se calcula el ancho y alto de la gráfica, el margen, el máximo valor de celdas ocupadas y la escala para los ejes X e Y
-        valores = [
-            valor for grupos in por_agente.values() for valor in grupos.values()
-        ]
-        # Se obtienen los valores de N y se ordenan para poder graficar correctamente
-        ns = sorted(
-            {
-                n for grupos in por_agente.values()
-                for n in grupos
-            }
-        )
-        ancho, alto = 800, 500
-        margen = 70
-        maximo = max(valores) if valores else 1
-        escala_x = (ancho - 2 * margen) / max(1, len(ns) - 1)
-        escala_y = (alto - 2 * margen) / maximo
-
-        elementos = [
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{ancho}" '
-            f'height="{alto}" viewBox="0 0 {ancho} {alto}">',
-            '<rect width="100%" height="100%" fill="white"/>',
-            '<text x="70" y="30" font-size="18">'
-            'Celdas ocupadas promedio según N</text>',
-            f'<line x1="{margen}" y1="{alto - margen}" x2="{ancho - margen}" '
-            f'y2="{alto - margen}" stroke="black"/>',
-            f'<line x1="{margen}" y1="{margen}" x2="{margen}" '
-            f'y2="{alto - margen}" stroke="black"/>',
-        ]
-
-        colores = {"search": "#1f77b4", "evolution": "#d62728"}
-        for agente, grupos in por_agente.items():
-            puntos = []
-            for indice, n in enumerate(ns):
-                if n not in grupos:
-                    continue
-                x = margen + indice * escala_x
-                y = alto - margen - grupos[n] * escala_y
-                puntos.append(f"{x:.2f},{y:.2f}")
-                elementos.append(
-                    f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4" '
-                    f'fill="{colores[agente]}"/>'
-                )
-            if puntos:
-                elementos.append(
-                    f'<polyline points="{" ".join(puntos)}" fill="none" '
-                    f'stroke="{colores[agente]}" stroke-width="2"/>'
-                )
-
-        elementos.extend(
-            [
-                f'<text x="{ancho // 2}" y="{alto - 15}" '
-                'text-anchor="middle">N</text>',
-                '<text x="15" y="250" transform="rotate(-90 15 250)">'
-                'Celdas ocupadas</text>',
-                '<text x="600" y="55" fill="#1f77b4">search</text>',
-                '<text x="680" y="55" fill="#d62728">evolution</text>',
-                "</svg>",
-            ]
-        )
-        with open(ruta_grafica, "w", encoding="utf-8") as file:
-            file.write("\n".join(elementos))
-
-
     def execute_agent(
         self,
         nombre_agente,
         ruta_instancia,
         semilla,
-        n,
-        k,
-        m,
-        seed,
         limite_tiempo,
         solution_path,
     ):
@@ -529,16 +379,37 @@ class ConfiguracionEscalabilidad:
             solution_path,
         ]
         try:
-            subprocess.run(
+            resultado = subprocess.run(
                 comando,
                 check=True,
                 cwd=os.path.dirname(os.path.abspath(__file__)),
+                capture_output=True,
+                text=True,
             )
         except (OSError, subprocess.CalledProcessError) as error:
             raise ValueError(
                 f"No se pudo ejecutar el agente '{nombre_agente}' "
                 f"para la instancia {ruta_instancia}."
             ) from error
+
+        metricas = dict(
+            re.findall(
+                r"([A-Za-z_]+)\s*=\s*(-?\d+(?:\.\d+)?)",
+                resultado.stdout,
+            )
+        )
+        metricas_requeridas = ("colocadas", "ocupadas", "mayor", "tiempo", "esfuerzo")
+        faltantes = [clave for clave in metricas_requeridas if clave not in metricas]
+        if faltantes:
+            raise ValueError(
+                f"La salida del agente '{nombre_agente}' no contiene las "
+                f"métricas requeridas: {faltantes}. Salida: {resultado.stdout!r}"
+            )
+
+        for clave in ("colocadas", "ocupadas", "mayor", "esfuerzo"):
+            metricas[clave] = int(metricas[clave])
+        metricas["tiempo"] = float(metricas["tiempo"])
+        return metricas
 
 
 def obtener_argumentos():
