@@ -13,16 +13,6 @@ Responsabilidad:
 
 El motor es independiente del algoritmo de búsqueda:
 el agente decide la acción; el motor aplica las reglas del juego.
-
-#Indicacion de la IA ------------------------------------------
-Como el profesor indicó que el motor es independiente del algoritmo de búsqueda, 
-self.agent.get_action(...) es un método inventado en este código como punto de contacto. 
-Cuando tu compañero termine los agentes en agent.py y evolutionary_agent.py, 
-olo deben asegurarse de que la función principal de sus agentes se llame get_action 
-(o cambiar el nombre aquí en el motor para que coincida) y que reciba el estado para devolver una tupla (fila, columna).
----------------------------------------------------------------
-
-
 """
 
 from typing import Any, Optional

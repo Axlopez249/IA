@@ -119,6 +119,7 @@ class ExperimentalComparison:
         for instance_number, instance_path, n, k, m in instances:
             for agent in ("search", "evolution"):
                 for seed in self.seeds:
+                    # Ejecutar el agente y obtener las métricas, la barra baja (_) indica que no necesitamos la ruta de la solución aquí.
                     _, metrics = self.execute_agent(instance_number, instance_path, agent, seed,)
                     rows.append({"Agente": agent,
                             "Instancia": instance_number,
