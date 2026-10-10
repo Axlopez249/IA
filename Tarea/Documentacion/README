@@ -16,8 +16,10 @@ El proyecto esta desarrollado en Python y no requiere instalación de biblioteca
 -- **Ejemplo:** python validador.py ejemplo.txt solucion.txt
 
 - Ejecutar Pruebas Automatizadas\
--- Las pruebas unitarias del validador se ejecutan con el módulo unittest de la biblioteca estándar:\
+-- Las pruebas unitarias del validador y motor se ejecutan con el módulo unittest de la biblioteca estándar:\
+-- Antes de correr los comandos debemos entrar en la carpeta de pruebas con el siguiente comando *cd pruebas*, en la terminal
 -- **Comando:** python test_validador.py
+-- **Comando:** python test_motor.py
 
 - Ejecutar Comparación Experimental\
 -- Genera instancias aleatorias (6 configuraciones) y corre ambos agentes reportando las métricas en archivos CSV\
