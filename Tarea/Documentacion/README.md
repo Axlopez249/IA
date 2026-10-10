@@ -4,6 +4,7 @@ __Este repositorio contiene la implementación del juego TileUp, incluyendo un m
 
 ## 1. Instrucciones de Ejecución:
 El proyecto esta desarrollado en Python y no requiere instalación de bibliotecas externas ni dependencias adicionales
+
 Antes de iniciar con la ejecución debemos cambiar de directorio en la terminal con el comando *cd Tarea*
 
 - Ejecutar una partida:\
@@ -17,9 +18,9 @@ Antes de iniciar con la ejecución debemos cambiar de directorio en la terminal 
 -- **Ejemplo:** python validador.py ejemplo.txt solucion.txt
 
 - Ejecutar Pruebas Automatizadas\
--- Las pruebas unitarias del validador y motor se ejecutan con el módulo unittest de la biblioteca estándar:\
--- Antes de correr los comandos debemos entrar en la carpeta de pruebas con el siguiente comando *cd pruebas*, en la terminal
--- **Comando:** python test_validador.py
+-- Las pruebas unitarias del validador y motor se ejecutan con el módulo unittest de la biblioteca estándar:
+Antes de correr los comandos debemos entrar en la carpeta de pruebas con el siguiente comando *cd pruebas*, en la terminal\
+-- **Comando:** python test_validador.py\
 -- **Comando:** python test_motor.py
 
 - Ejecutar Comparación Experimental\
