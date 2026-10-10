@@ -1,0 +1,7 @@
+0 0 0
+1 0 1
+2 0 2
+3 0 1
+4 0 3
+5 1 2
+# colocadas = 6 ocupadas = 4 mayor = 21

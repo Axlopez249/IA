@@ -53,24 +53,46 @@ Observando los datos recolectados, el agente basado en búsqueda (A*) demuestra 
 Por el contrario, el agente evolutivo consume la totalidad del límite de tiempo establecido (~4.9 segundos) realizando decenas de miles de evaluaciones de aptitud. Aunque el agente evolutivo logra colocar todas las fichas en las 6 instancias, sufre una ligera degradación en la optimización del espacio a medida que el tablero crece: en las instancias 5 y 6, el evolutivo deja un promedio de 3.3 y 4.3 celdas ocupadas respectivamente, mientras que A* logra consolidar mejor las fusiones dejando el tablero con solo 3 y 4 celdas ocupadas de manera consistente.
 
 ## 4. Estudio de Escalabilidad (Módulo de Grupos de 3)
-Se implementó una batería de pruebas automatizada (`moduloExtra.py`) parametrizada para recorrer distintas configuraciones incrementales de tablero ($N$) y variedad de colores ($K$), manteniendo una cantidad fija de fichas ($M=10$) con 3 semillas por configuración.
+
+Se implementó una batería de pruebas automatizada mediante `moduloExtra.py`, parametrizada para evaluar distintas configuraciones incrementales del tamaño del tablero ($N$) y la variedad de colores ($K$), manteniendo una cantidad fija de fichas ($M$) y utilizando 3 semillas por configuración.
 
 **Resultados Generales del Reporte:**
 - Ejecuciones: 27 por agente.
-- Ejecuciones incompletas: 6 por agente (22.22%).
-- Impacto de variables: El parámetro que más incrementa la cantidad de celdas ocupadas en promedio es K (variedad de colores) con una variación de 3.89, frente a la variación de 1.33 provocada por el tamaño del tablero ($N$).
+- Ejecuciones incompletas: 3 por agente (11.11%).
+- Impacto de variables: El parámetro que más cambia la cantidad de celdas ocupadas en promedio es $K$ (variedad de colores), con una variación de 2.61, frente a una variación de 0.44 provocada por el tamaño del tablero ($N$).
 
-__Comportamiento del Agente de Búsqueda:__
-- Celdas ocupadas promedio por $N$: $N=2$ (3.33 ± 1.00), $N=4$ (4.67 ± 2.60), $N=8$ (4.44 ± 2.24).
-- Celdas ocupadas promedio por $K$: $K=2$ (2.00), $K=4$ (4.22), $K=8$ (6.22).
-- Punto de quiebre: Presenta ejecuciones incompletas a partir de $N=2, K=4$.
+**Comportamiento del Agente de Búsqueda (`search`):**
+- Celdas ocupadas promedio por $N$: $N=2$ (3.22 ± 0.97), $N=4$ (3.67 ± 1.66), $N=8$ (3.56 ± 1.51).
+- Celdas ocupadas promedio por $K$: $K=2$ (2.00), $K=4$ (3.67), $K=8$ (4.78).
+- Punto de fallo observado: Presenta ejecuciones incompletas desde la configuración $N=2, K=8$.
 
-**Comportamiento del Agente Evolutivo:**
-- Celdas ocupadas promedio por $N$: $N=2$ (3.33 ± 1.00), $N=4$ (4.44 ± 2.24), $N=8$ (4.89 ± 1.76).
-- Celdas ocupadas promedio por $K$: $K=2$ (2.44), $K=4$ (4.22), $K=8$ (6.00).
-- Punto de quiebre: Al igual que A*, presenta exactamente 6 ejecuciones incompletas en el mismo conjunto de instancias.
+**Comportamiento del Agente Evolutivo (`evolution`):**
+- Celdas ocupadas promedio por $N$: $N=2$ (3.11 ± 0.93), $N=4$ (3.44 ± 1.42), $N=8$ (3.67 ± 1.22).
+- Celdas ocupadas promedio por $K$: $K=2$ (2.22), $K=4$ (3.33), $K=8$ (4.67).
+- Ejecuciones incompletas: Presenta 3 ejecuciones incompletas en el mismo conjunto de instancias, según el reporte generado.
 
 **Análisis del Régimen de Degradación:**
-Los datos revelan que la variable que verdaderamente domina la dificultad del problema no es el tamaño del tablero ($N$), sino la cantidad de colores ($K$). Al aumentar los colores de 2 a 8, la cantidad de celdas que quedan ocupadas en el tablero prácticamente se triplica (pasando de ~2.00 a ~6.22). Esto ocurre porque una mayor variedad de estos reduce drásticamente la probabilidad de colocar fichas adyacentes del mismo color, limitando las fusiones y saturando el tablero rápidamente. Ademas,ambos agentes fracasan exactamente en el mismo régimen ($N=2, K \ge 4$). Esto indica que la limitante en este caso no es la capacidad del algoritmo A* o del agente evolutivo (como exceder el límite de tiempo o quedarse atascado en mínimos locales), sino un límite físico y espacial del problema: en un tablero de $2 \times 2$ (4 celdas totales) con $M=10$ fichas a colocar y una alta variedad de colores, el tablero se satura con colores incompatibles antes de poder consumirse la secuencia completa, desencadenando una derrota determinista insalvable para cualquier inteligencia artificial.
+
+Los datos indican que la variable que más cambia la cantidad promedio de celdas ocupadas es la variedad de colores ($K$), no el tamaño del tablero ($N$). Al aumentar los colores de 2 a 8, el promedio de celdas ocupadas aumenta de 2.00 a 4.78 para el agente `search` y de 2.22 a 4.67 para `evolution`. En contraste, los cambios asociados con $N$ son menores y no presentan una tendencia estrictamente creciente para ambos agentes.
+
+Variación de K (colores)
+| Evolutivo | Búsqueda |
+| :---: | :---: |
+| ![Descripción 1](VariaK_Evo.png) | ![Descripción 2](VariaK_Search.png) |
+
+Variación de N (tamaño de tablero)
+| Evolutivo | Búsqueda |
+| :---: | :---: |
+| ![Descripción 1](VariaN_Evo.png) | ![Descripción 2](VariaN_Search.png) |
+
+
+Este comportamiento es compatible con la hipótesis de que una mayor variedad de colores reduce las oportunidades de fusionar fichas adyacentes del mismo color, lo que puede incrementar la ocupación del tablero. Sin embargo, los promedios por sí solos no demuestran que esta sea la causa de todos los resultados.
+
+En cuanto a las ejecuciones incompletas, el reporte identifica casos de fallo para `search` desde la configuración $N=2, K=8$, mientras que `evolution` presenta 3 ejecuciones incompletas en el mismo conjunto de instancias. Estos resultados evidencian dificultades para completar algunas configuraciones, pero no permiten afirmar que los fallos se deban exclusivamente a la saturación física del tablero.
+
+Las gráficas de esfuerzo computacional complementan estos resultados al mostrar cómo cambia el esfuerzo promedio al variar $N$ y $K$. Para comparar ambos algoritmos, las gráficas deben incluir las series de `search` y `evolution`, o bien presentar los resultados de cada agente por separado. También se recomienda analizar el tiempo de ejecución y el porcentaje de instancias completadas para obtener una visión más completa de la escalabilidad.
+
+
+
 
 > **Nota: Hay que generar un gráfico en Excel usando los promedios de celdas ocupadas por $K$ (2, 4 y 8) para ambos agentes e insertar la imagen justo debajo de este párrafo para respaldar visualmente el análisis.**

@@ -1,0 +1,7 @@
+0 6 6
+1 5 7
+2 3 2
+3 1 7
+4 4 0
+5 3 0
+# colocadas = 6 ocupadas = 6 mayor = 10

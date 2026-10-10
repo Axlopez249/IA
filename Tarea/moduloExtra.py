@@ -141,7 +141,7 @@ class ConfiguracionEscalabilidad:
                             "solution_path": os.path.join(
                                 modulo_dir, f"solution_search_{nombre_archivo}"
                             ),
-                            **datos_agente,
+                            **datos_agente, # metricas obtenidas del agente por medio de la terminal
                         }
                     )
                     datos_agente = self.execute_agent(
@@ -163,7 +163,7 @@ class ConfiguracionEscalabilidad:
                             "solution_path": os.path.join(
                                 modulo_dir, f"solution_evolution_{nombre_archivo}"
                             ),
-                            **datos_agente,
+                            **datos_agente, # metricas obtenidas del agente por medio de la terminal
                         }
                     )
 
@@ -235,10 +235,12 @@ class ConfiguracionEscalabilidad:
 
         # Se saca la informacion de cada agente y se calcula el promedio de celdas ocupadas por N y K
         for agente in ("search", "evolution"):
+            # Se toma la informacion de cada agente y se filtra por el agente actual
             datos_agente = [dato for dato in datos if dato["agente"] == agente]
             if not datos_agente:
                 continue
 
+            # Se sacan las ejecuciones incompletas para el agente actual
             incompletas = [
                 dato for dato in datos_agente
                 if dato["colocadas"] < dato["m"]
@@ -253,13 +255,20 @@ class ConfiguracionEscalabilidad:
 
             # Se calcula el promedio de celdas ocupadas por N y se agrega al reporte
             por_n = {}
+            # En este for se crea un json colocando n como llave y ocupadas como valor,
+            #  para luego calcular el promedio de celdas ocupadas por N
             for dato in datos_agente:
+                # Se mantiene el dato de N fijo y se van agregando los valores de ocupadas en una lista, para luego calcular el promedio
                 por_n.setdefault(dato["n"], []).append(dato["ocupadas"])
+
+            # Se recorre el json y se calcula el promedio de celdas ocupadas por N, y se agrega al reporte
             lineas.append("  Promedio de celdas ocupadas por N:")
             for n in sorted(por_n):
                 valores = por_n[n]
+                # Se calcula la desviación estándar de los valores, si hay más de un valor, sino se asigna 0
                 dispersion = (
-                    statistics.stdev(valores) if len(valores) > 1 else 0
+                    statistics.stdev(valores) 
+                    if len(valores) > 1 else 0
                 )
                 lineas.append(
                     f"    N={n}: promedio={statistics.mean(valores):.2f}, "
@@ -272,6 +281,7 @@ class ConfiguracionEscalabilidad:
                 por_k.setdefault(dato["k"], []).append(dato["ocupadas"])
             lineas.append("  Promedio de celdas ocupadas por K:")
             for k in sorted(por_k):
+                # Se calcula el promedio de celdas ocupadas por K
                 lineas.append(
                     f"    K={k}: promedio={statistics.mean(por_k[k]):.2f}"
                 )
@@ -303,17 +313,14 @@ class ConfiguracionEscalabilidad:
             promedios_k.setdefault(dato["k"], []).append(dato["ocupadas"])
 
         # Se sacan las variaciones de N y K para determinar cuál tiene mayor impacto en las celdas ocupadas promedio
-        variacion_n = max(
-            statistics.mean(valores) for valores in promedios_n.values()
-        ) - min(
-            statistics.mean(valores) for valores in promedios_n.values()
-        )
-        variacion_k = max(
-            statistics.mean(valores) for valores in promedios_k.values()
-        ) - min(
-            statistics.mean(valores) for valores in promedios_k.values()
-        )
+        variacion_n = max(statistics.mean(valores) for valores in promedios_n.values())
+        - min(statistics.mean(valores) for valores in promedios_n.values())
+        
+        variacion_k = max(statistics.mean(valores) for valores in promedios_k.values())
+        - min(statistics.mean(valores) for valores in promedios_k.values())
+
         parametro = "N (tamaño del tablero)" if variacion_n >= variacion_k else "K (colores)"
+
         lineas.append(
             f"El parámetro que más cambia las celdas ocupadas en promedio es "
             f"{parametro}: variación por N={variacion_n:.2f}, "
@@ -325,6 +332,8 @@ class ConfiguracionEscalabilidad:
             dato for dato in datos
             if dato["agente"] == "search" and dato["colocadas"] < dato["m"]
         ]
+
+        # Se coloca en el reporte la información de la primera ejecución incompleta del agente search, si es que hay alguna
         if incompletas_search:
             primera = min(
                 incompletas_search,
@@ -339,6 +348,7 @@ class ConfiguracionEscalabilidad:
                 "El agente search completa todas las ejecuciones observadas."
             )
 
+        # Se coloca en el reporte la información de la primera ejecución incompleta del agente evolution, si es que hay alguna
         incompletas_evo = [
             dato for dato in datos
             if dato["agente"] == "evolution" and dato["colocadas"] < dato["m"]

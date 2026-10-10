@@ -1,0 +1,32 @@
+REPORTE DE ESCALABILIDAD DE TILEUP
+=================================
+
+Criterio: una ejecución se considera incompleta si colocadas < M.
+Las métricas y el tiempo se obtienen directamente de la salida
+capturada de cada subproceso.
+
+search: 27 ejecuciones, 3 incompletas (11.11%).
+  Promedio de celdas ocupadas por N:
+    N=2: promedio=3.22, desviacion_entre_semillas=0.97
+    N=4: promedio=3.67, desviacion_entre_semillas=1.66
+    N=8: promedio=3.56, desviacion_entre_semillas=1.51
+  Promedio de celdas ocupadas por K:
+    K=2: promedio=2.00
+    K=4: promedio=3.67
+    K=8: promedio=4.78
+
+evolution: 27 ejecuciones, 3 incompletas (11.11%).
+  Promedio de celdas ocupadas por N:
+    N=2: promedio=3.11, desviacion_entre_semillas=0.93
+    N=4: promedio=3.44, desviacion_entre_semillas=1.42
+    N=8: promedio=3.67, desviacion_entre_semillas=1.22
+  Promedio de celdas ocupadas por K:
+    K=2: promedio=2.22
+    K=4: promedio=3.33
+    K=8: promedio=4.67
+
+LECTURA DEL RESULTADO
+=====================
+El parámetro que más cambia las celdas ocupadas en promedio es K (colores): variación por N=0.44, variación por K=2.61.
+El agente search presenta ejecuciones incompletas desde N=2, K=8 (seed=0).
+El agente evolution tiene 3 ejecuciones incompletas en el mismo conjunto.
