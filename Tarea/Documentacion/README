@@ -1,0 +1,31 @@
+# Agentes de búsqueda y evolutivos para TileUp
+<ins> Hola </ins>
+
+__Este repositorio contiene la implementación del juego TileUp, incluyendo un motor independiente, un validador, y dos agentes de Inteligencia Artificial (uno basado en búsqueda A* y otro evolutivo) capaces de jugar partidas de forma autónoma.__
+
+## 1. Instrucciones de Ejecución:
+El proyecto esta desarrollado en Python y no requiere instalación de bibliotecas externas ni dependencias adicionales
+
+- Ejecutar una partida:\
+-- Para ejecutar un agente sobre una instancia de juego, utilizar el archivo main.py. El comando acepta los parámetros de instancia, agente, semilla, tiempo límite y archivo de salida\
+-- **Comando:** python main.py < ruta_instancia > --agent < search|evolution > --seed < semilla > --time-limit < segundos > --output < ruta_solucion >\
+-- **Ejemplo:** python main.py ejemplo.txt --agent search --seed 42 --time-limit 10.0 --output solucion.txt
+
+- Ejecutar el Validador Independiente:\
+-- Para comprobar la legalidad de una solución generada, ejecute validador.py pasando la instancia y la solución generada:\
+-- **Comando:** python validador.py < ruta_instancia > < ruta_solucion >\
+-- **Ejemplo:** python validador.py ejemplo.txt solucion.txt
+
+- Ejecutar Pruebas Automatizadas\
+-- Las pruebas unitarias del validador se ejecutan con el módulo unittest de la biblioteca estándar:\
+-- **Comando:** python test_validador.py
+
+- Ejecutar Comparación Experimental\
+-- Genera instancias aleatorias (6 configuraciones) y corre ambos agentes reportando las métricas en archivos CSV\
+-- **Comando:** python comparacion_experimental.py --time-limit < segundos >\
+-- **Ejemplo:** python comparacion_experimental.py --time-limit 5.0
+
+- Ejecutar Módulo de Escalabilidad (Módulo Extra)\
+-- Construye una batería experimental parametrizada para evaluar la degradación de los agentes\
+-- **Comando:** python moduloExtra.py < cantidad_N > < cantidad_K > < M > < cantidad_semillas >\
+-- **Ejemplo:** python moduloExtra.py 3 3 10 3
