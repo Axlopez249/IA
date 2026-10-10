@@ -28,15 +28,49 @@ El algoritmo genético fue diseñado para evolucionar un plan de movimientos leg
 Los parámetros (`population_size = 100`, `selection_size = 20`, `mutation_rate = 0.10`) se fijaron mediante experimentación iterativa. Se observó que poblaciones mayores a 100 ralentizaban excesivamente las simulaciones por el costo del motor, provocando que el algoritmo realizara muy pocas generaciones antes del límite de tiempo. Una tasa de mutación del 10% demostró el equilibrio ideal para escapar de óptimos locales (atascos rápidos en el tablero) sin destruir las buenas secuencias genéticas logradas por el cruce.
 
 ## 3. Comparación Experimental
+Para comparar el rendimiento de ambos algoritmos, se ejecutaron 6 configuraciones distintas de instancias ($N$, $K$, $M$), corriendo 3 semillas diferentes por cada configuración para medir la dispersión y consistencia de los resultados.
 
-Para comparar el rendimiento de ambos algoritmos, se ejecutaron 6 configuraciones distintas de instancias ($N$, $K$, $M$), corriendo 3 semillas diferentes por cada configuración para medir la dispersión.
+A continuación se presenta el resumen de las métricas (Media ± Desviación Estándar) agrupadas por instancia y agente:
 
-> **Nota: Hay que pegar aquí una tabla resumen basándose en el archivo `resumen.csv` que genera el script `comparacion_experimental.py`. Mencionar brevemente cuál agente logró colocar más fichas en las instancias más difíciles, cuál ocupó menos celdas y la diferencia en el tiempo de cómputo y nodos/evaluaciones expandidas.**
+| Instancia | N | K | M | Agente | Colocadas | Ocupadas | Tiempo (s) | Esfuerzo (Nodos/Eval) |
+| :---: | :---: | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
+| 1 | 3 | 2 | 6 | search | 6.0 ± 0.0 | 2.0 ± 0.0 | 0.0004 ± 0.0000 | 7.0 ± 0.0 |
+| 1 | 3 | 2 | 6 | evolution | 6.0 ± 0.0 | 2.0 ± 0.0 | 4.9012 ± 0.0008 | 34066.7 ± 986.6 |
+| 2 | 3 | 3 | 8 | search | 8.0 ± 0.0 | 3.0 ± 0.0 | 0.0005 ± 0.0000 | 9.0 ± 0.0 |
+| 2 | 3 | 3 | 8 | evolution | 8.0 ± 0.0 | 3.0 ± 0.0 | 4.9029 ± 0.0014 | 27733.3 ± 461.9 |
+| 3 | 4 | 2 | 8 | search | 8.0 ± 0.0 | 2.0 ± 0.0 | 0.0009 ± 0.0001 | 9.0 ± 0.0 |
+| 3 | 4 | 2 | 8 | evolution | 8.0 ± 0.0 | 2.0 ± 0.0 | 4.9019 ± 0.0013 | 24000.0 ± 173.2 |
+| 4 | 4 | 3 | 10 | search | 10.0 ± 0.0 | 3.0 ± 0.0 | 0.0010 ± 0.0000 | 11.0 ± 0.0 |
+| 4 | 4 | 3 | 10 | evolution | 10.0 ± 0.0 | 3.0 ± 0.0 | 4.9030 ± 0.0016 | 20100.0 ± 400.0 |
+| 5 | 5 | 3 | 10 | search | 10.0 ± 0.0 | 3.0 ± 0.0 | 0.0016 ± 0.0000 | 11.0 ± 0.0 |
+| 5 | 5 | 3 | 10 | evolution | 10.0 ± 0.0 | 3.3 ± 0.58 | 4.9032 ± 0.0025 | 17533.3 ± 152.8 |
+| 6 | 5 | 4 | 12 | search | 12.0 ± 0.0 | 4.0 ± 0.0 | 0.0019 ± 0.0001 | 13.0 ± 0.0 |
+| 6 | 5 | 4 | 12 | evolution | 12.0 ± 0.0 | 4.3 ± 0.58 | 4.9014 ± 0.0004 | 14700.0 ± 692.8 |
+
+**Análisis de Resultados:**
+Observando los datos recolectados, el agente basado en búsqueda (A*) demuestra ser superior en estas escalas del problema. En todos los escenarios A* logra encontrar la solución óptima en menos de 0.002 segundos, expandiendo un máximo de 13 nodos (Instancia 6). 
+
+Por el contrario, el agente evolutivo consume la totalidad del límite de tiempo establecido (~4.9 segundos) realizando decenas de miles de evaluaciones de aptitud. Aunque el agente evolutivo logra colocar todas las fichas en las 6 instancias, sufre una ligera degradación en la optimización del espacio a medida que el tablero crece: en las instancias 5 y 6, el evolutivo deja un promedio de 3.3 y 4.3 celdas ocupadas respectivamente, mientras que A* logra consolidar mejor las fusiones dejando el tablero con solo 3 y 4 celdas ocupadas de manera consistente.
 
 ## 4. Estudio de Escalabilidad (Módulo de Grupos de 3)
+Se implementó una batería de pruebas automatizada (`moduloExtra.py`) parametrizada para recorrer distintas configuraciones incrementales de tablero ($N$) y variedad de colores ($K$), manteniendo una cantidad fija de fichas ($M=10$) con 3 semillas por configuración.
 
-Se implementó una batería de pruebas automatizada (`moduloExtra.py`) parametrizada para recorrer distintas configuraciones incrementales de tablero ($N$) y variedad de colores ($K$), manteniendo una cantidad fija de fichas ($M$). 
+**Resultados Generales del Reporte:**
+- Ejecuciones: 27 por agente.
+- Ejecuciones incompletas: 6 por agente (22.22%).
+- Impacto de variables: El parámetro que más incrementa la cantidad de celdas ocupadas en promedio es K (variedad de colores) con una variación de 3.89, frente a la variación de 1.33 provocada por el tamaño del tablero ($N$).
 
-**Resultados y Degradación de los Agentes:**
+__Comportamiento del Agente de Búsqueda:__
+- Celdas ocupadas promedio por $N$: $N=2$ (3.33 ± 1.00), $N=4$ (4.67 ± 2.60), $N=8$ (4.44 ± 2.24).
+- Celdas ocupadas promedio por $K$: $K=2$ (2.00), $K=4$ (4.22), $K=8$ (6.22).
+- Punto de quiebre: Presenta ejecuciones incompletas a partir de $N=2, K=4$.
 
-> **Nota: Hay que pegar aquí directamente el contenido textual que el programa genera en `reporte/reporte_escalabilidad.txt`. Luego, añadir un pequeño párrafo y una captura de gráfica generada en Python analizando en qué régimen exacto el agente A* comienza a agotar el límite de tiempo y deja de encontrar la solución completa, y cómo se comporta el agente evolutivo bajo esa misma presión de tamaño y colores.**
+**Comportamiento del Agente Evolutivo:**
+- Celdas ocupadas promedio por $N$: $N=2$ (3.33 ± 1.00), $N=4$ (4.44 ± 2.24), $N=8$ (4.89 ± 1.76).
+- Celdas ocupadas promedio por $K$: $K=2$ (2.44), $K=4$ (4.22), $K=8$ (6.00).
+- Punto de quiebre: Al igual que A*, presenta exactamente 6 ejecuciones incompletas en el mismo conjunto de instancias.
+
+**Análisis del Régimen de Degradación:**
+Los datos revelan que la variable que verdaderamente domina la dificultad del problema no es el tamaño del tablero ($N$), sino la cantidad de colores ($K$). Al aumentar los colores de 2 a 8, la cantidad de celdas que quedan ocupadas en el tablero prácticamente se triplica (pasando de ~2.00 a ~6.22). Esto ocurre porque una mayor variedad de estos reduce drásticamente la probabilidad de colocar fichas adyacentes del mismo color, limitando las fusiones y saturando el tablero rápidamente. Ademas,ambos agentes fracasan exactamente en el mismo régimen ($N=2, K \ge 4$). Esto indica que la limitante en este caso no es la capacidad del algoritmo A* o del agente evolutivo (como exceder el límite de tiempo o quedarse atascado en mínimos locales), sino un límite físico y espacial del problema: en un tablero de $2 \times 2$ (4 celdas totales) con $M=10$ fichas a colocar y una alta variedad de colores, el tablero se satura con colores incompatibles antes de poder consumirse la secuencia completa, desencadenando una derrota determinista insalvable para cualquier inteligencia artificial.
+
+> **Nota: Hay que generar un gráfico en Excel usando los promedios de celdas ocupadas por $K$ (2, 4 y 8) para ambos agentes e insertar la imagen justo debajo de este párrafo para respaldar visualmente el análisis.**
