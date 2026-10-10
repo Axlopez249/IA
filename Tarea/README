@@ -1,2 +1,61 @@
+# Agentes de búsqueda y evolutivos para TileUp
+<ins> Hola </ins>
 
+__Este repositorio contiene la implementación del juego TileUp, incluyendo un motor independiente, un validador, y dos agentes de Inteligencia Artificial (uno basado en búsqueda A* y otro evolutivo) capaces de jugar partidas de forma autónoma.__
 
+## 1. Instrucciones de Ejecución:
+El proyecto esta desarrollado en Python y no requiere instalación de bibliotecas externas ni dependencias adicionales
+
+- Ejecutar una partida:\
+-- Para ejecutar un agente sobre una instancia de juego, utilizar el archivo main.py. El comando acepta los parámetros de instancia, agente, semilla, tiempo límite y archivo de salida\
+-- **Comando:** python main.py < ruta_instancia > --agent < search|evolution > --seed < semilla > --time-limit < segundos > --output < ruta_solucion >\
+-- **Ejemplo:** python main.py ejemplo.txt --agent search --seed 42 --time-limit 10.0 --output solucion.txt
+
+- Ejecutar el Validador Independiente:\
+-- Para comprobar la legalidad de una solución generada, ejecute validador.py pasando la instancia y la solución generada:\
+-- **Comando:** python validador.py < ruta_instancia > < ruta_solucion >
+
+- Ejecutar Pruebas Automatizadas\
+-- Las pruebas unitarias del validador se ejecutan con el módulo unittest de la biblioteca estándar:\
+-- **Comando:** python test_validador.py
+
+- Ejecutar Comparación Experimental\
+-- Genera instancias aleatorias (6 configuraciones) y corre ambos agentes reportando las métricas en archivos CSV\
+-- **Comando:** python comparacion_experimental.py --time-limit < segundos >
+
+- Ejecutar Módulo de Escalabilidad (Módulo Extra)\
+-- Construye una batería experimental parametrizada para evaluar la degradación de los agentes\
+-- **Comando:** python moduloExtra.py < cantidad_N > < cantidad_K > < M > < cantidad_semillas >\
+-- **Ejemplo:** python moduloExtra.py 3 3 10 3
+
+## 2. Informe Técnico y Formulación de Agentes
+
+### Agente de Búsqueda (A*)
+El agente de búsqueda está implementado en agent_2.py utilizando el algoritmo A*. Su formulación es la siguiente:
+- **Estado:** Una estructura (diccionario) que contiene una copia de la matriz del tablero (board), el índice de la siguiente ficha (next_piece_index), la secuencia total de fichas y los parámetros N, K, M. Se hachea convirtiendo la matriz en tuplas inmutables para llevar el registro de visitados.
+
+- **Operador de sucesión:** Seleccionar una celda vacía (get_valid_actions) y simular la colocación de la ficha actual aplicando todas las reglas de fusión correspondientes (update_state) sin alterar el estado real del motor.
+
+- **Costo de la acción $g(n)$:** Cantidad total de celdas ocupadas en el tablero (_contar_ocupadas) en el estado actual. 
+
+- **Prueba de meta:** Se alcanza cuando la profundidad del nodo explorado (fichas colocadas) es igual o mayor a la cantidad total de fichas $M$ (profundidad >= estado_inicial["m"]). 
+
+- **Heurística $h(n)$:** Se calcula como la cantidad de fichas restantes por consumir de la secuencia (M - next_piece_index).
+
+- **Admisibilidad de la Heurística:** Esta heurística no es admisible. Asume de forma pesimista que cada ficha faltante ocupará una nueva celda en el tablero, lo cual sobreestima el costo real porque las fusiones reducen la cantidad de celdas ocupadas. Al utilizar una heurística no admisible, se pierde la garantía de optimización estricta (no se garantiza encontrar la partida que termine con el absoluto mínimo de celdas ocupadas). Se eligió renunciar a esta garantía matemática a favor del rendimiento de ejecución, para forzar al algoritmo a avanzar agresivamente hacia la victoria antes de que se agote el tiempo de cómputo.
+
+### Agente Evolutivo
+El agente genético está implementado en evolutionary_agent_2.py y se define de la siguiente manera:
+- **Representación del individuo (Cromosoma):** Una lista de valores continuos (genes) entre 0.0 y 1.0. La longitud del cromosoma equivale a las fichas restantes. Durante la decodificación (simulate_individual), cada gen se multiplica por la cantidad de movimientos legales disponibles, utilizándose como un índice dinámico para elegir una celda vacía válida.
+
+- **Función de aptitud (Fitness):** Prioriza fuertemente el avance hacia la victoria sumando la cantidad de fichas logradas multiplicadas por un factor enorme (fichas_colocadas * 1000000), a lo que se suma la cantidad de celdas que quedan libres al final.
+
+- **Mecanismo de Selección:** Selección por truncamiento y elitismo. La población se evalúa, se ordena descendentemente por aptitud y se seleccionan estrictamente los selection_size (20) mejores individuos.
+
+- **Operadores de variación:**\
+-- <ins>Cruce(Crossover):</ins>  De un solo punto. Se elige aleatoriamente un índice y se fusiona la primera mitad de los genes del Padre 1 con la segunda mitad del Padre 2.\
+-- <ins>Mutación:</ins>  Probabilidad de mutación del 10% (mutation_rate = 0.10). Si se dispara, reemplaza un gen aleatorio del hijo por un nuevo valor entre 0 y 1.
+
+- **Política de Reemplazo:** Generacional completo. Los descendientes creados al cruzar los padres reemplazan a la totalidad de la población anterior en la siguiente iteración (offspring reemplaza a population), manteniendo un tamaño constante de population_size = 100.
+
+- **Criterio de paro:** El bucle generacional avanza hasta que se alcance el límite de tiempo seguro (limite_tiempo_seguro) o la población se vacíe por no encontrar jugadas legales.
