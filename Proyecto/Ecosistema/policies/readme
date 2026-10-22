@@ -1,0 +1,7 @@
+Decide acciones individuales usando una red neuronal compartida por especie.
+Como tenemos 2 redes neuronales (herbivoros y carnivos)
+
+Aqui se desarrollan los cerebros de cada individuo
+Por lo tanto, en esta carpeta estaran las 2 redes 
+neuranles que van a compartir los individuos de la misma especie
+(herviboros, carnivoros)

@@ -1,0 +1,9 @@
+Decide acciones colectivas
+Probablemente existan 2 archivos, un supervisor para cada especie
+
+herbivoros:
+Opciones como mandar a todos a explorar, buscar comida o agruparse,
+permitir reproduccion y priorizar supervivencia
+
+CARNIVOROS:
+Explorar, buscar presa, agruparse, permitir reproduccion, prioriza caza

@@ -1,0 +1,6 @@
+Mantiene el mapa, los recursos y las reglas del ecosistema.
+Se crea el plano (x,y) de un tamaño adecuado
+Se crean las clases entorno para luego asignarlas al plano, tomando en cuenta los diferentes tipos que existen
+
+Se crea la clase comida
+Se crea la clase agua
