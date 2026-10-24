@@ -1,4 +1,4 @@
-"""Punto de entrada para ejecutar una simulacion de la Fase 1."""
+# Punto de entrada para ejecutar una simulacion de la Fase 1.
 
 from agents.animal import Animal, Species
 from config import SimulationConfig
@@ -9,6 +9,7 @@ from policies.rule_based import RuleBasedPolicy
 
 
 def build_world(config: SimulationConfig | None = None) -> World:
+	# Crea un mundo con comida y poblaciones iniciales segun la configuracion.
 	config = config or SimulationConfig()
 	world = World(config)
 	policy = RuleBasedPolicy()
@@ -27,6 +28,7 @@ def build_world(config: SimulationConfig | None = None) -> World:
 
 
 def run(steps: int | None = None) -> None:
+	# Ejecuta la simulacion y muestra un resumen periodico de sus metricas.
 	world = build_world()
 	total_steps = steps if steps is not None else world.config.max_steps
 	print(snapshot(world))

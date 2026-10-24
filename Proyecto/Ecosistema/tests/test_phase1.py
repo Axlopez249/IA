@@ -11,6 +11,7 @@ from policies.rule_based import RuleBasedPolicy
 
 class Phase1Tests(unittest.TestCase):
     def test_world_is_reproducible_with_same_seed(self) -> None:
+        # Comprueba que una misma semilla crea el mismo estado inicial.
         config = SimulationConfig(initial_food=4, initial_herbivores=2, initial_carnivores=1)
         first = build_world(config)
         second = build_world(config)
@@ -19,6 +20,7 @@ class Phase1Tests(unittest.TestCase):
                          [(animal.x, animal.y) for animal in second.animals])
 
     def test_animal_eats_food_and_food_is_removed(self) -> None:
+        # Comprueba que comer aumenta energia y elimina el recurso.
         config = SimulationConfig(width=3, height=3, initial_energy=2, hunger_cost=0)
         world = World(config)
         animal = Animal(Species.HERBIVORE, 1, 1, 2, RuleBasedPolicy())
@@ -32,6 +34,7 @@ class Phase1Tests(unittest.TestCase):
         self.assertTrue(animal.alive)
 
     def test_animal_dies_when_energy_reaches_zero(self) -> None:
+        # Comprueba que un animal sin energia se elimina del mundo.
         config = SimulationConfig(initial_energy=0, hunger_cost=0)
         world = World(config)
         animal = Animal(Species.HERBIVORE, 0, 0, 0, RuleBasedPolicy())

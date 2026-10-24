@@ -1,4 +1,4 @@
-"""Metricas basicas de la simulacion."""
+# Metricas basicas de la simulacion.
 
 from .collector import snapshot
 

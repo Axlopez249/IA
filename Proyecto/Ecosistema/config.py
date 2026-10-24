@@ -1,11 +1,11 @@
-"""Configuracion central de la simulacion."""
+# Configuracion central de la simulacion.
 
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class SimulationConfig:
-	"""Parametros de la Fase 1, agrupados para facilitar experimentos."""
+	# Parametros de la simulacion, agrupados para facilitar experimentos.
 
 	width: int = 30
 	height: int = 20
@@ -19,3 +19,10 @@ class SimulationConfig:
 	food_energy: float = 4.0
 	max_steps: int = 100
 	seed: int = 7
+	hunt_energy: float = 7.0
+	reproduction_energy_threshold: float = 10.0
+	reproduction_age: int = 5
+	reproduction_cost: float = 3.0
+	max_age: int = 300
+	perception_radius: int = 5
+	rest_energy_threshold: float = 18.0

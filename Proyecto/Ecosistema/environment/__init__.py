@@ -1,4 +1,4 @@
-"""Componentes del entorno del ecosistema."""
+# Componentes del entorno del ecosistema.
 
 from .world import World
 
