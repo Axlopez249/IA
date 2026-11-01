@@ -14,6 +14,7 @@ class SimulationConfig:
 	initial_food: int = 45
 	food_regrowth_rate: float = 0.08
 	initial_energy: float = 12.0
+	max_energy: float = 20.0
 	movement_cost: float = 0.4
 	hunger_cost: float = 0.2
 	food_energy: float = 4.0

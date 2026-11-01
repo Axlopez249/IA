@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from .actions import Action
-from policies.rule_based import RuleBasedPolicy
+from policies.base import Policy
 
 if TYPE_CHECKING:
     from config import SimulationConfig
@@ -30,7 +30,7 @@ class Animal:
     x: int
     y: int
     energy: float
-    policy: RuleBasedPolicy
+    policy: Policy
     identifier: str = ""
     alive: bool = True
     age: int = 0
@@ -47,6 +47,10 @@ class Animal:
     def act(self, world: "World") -> None:
         # Selecciona y ejecuta una accion, actualiza edad y comprueba su muerte.
         action = self.policy.choose_action(self, world)
+        self.execute_action(action, world)
+
+    def execute_action(self, action: Action, world: "World") -> None:
+        # Ejecuta una accion concreta; tambien sirve para futuros entornos de entrenamiento.
         if action == Action.MOVE:
             self.move(world)
         elif action == Action.EAT:
