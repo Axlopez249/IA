@@ -1,26 +1,22 @@
 # Mapa 2D y ciclo temporal de la simulacion.
 
 from __future__ import annotations
-
 import random
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
-
-from config import SimulationConfig
 from agents.animal import Species
 from .resources import Food
-from supervisors.base import Supervisor
-from supervisors.objectives import Objective
 
 if TYPE_CHECKING:
+    from supervisors.base import Supervisor
+    from supervisors.objectives import Objective
+    from config import SimulationConfig
     from agents.animal import Animal
 
 
 @dataclass
 class World:
-    # Contiene los recursos, animales y reglas globales del ecosistema.
-
-    config: SimulationConfig
+    config: "SimulationConfig"
     rng: random.Random = field(init=False)
     foods: list[Food] = field(default_factory=list)
     animals: list["Animal"] = field(default_factory=list)
@@ -29,8 +25,8 @@ class World:
     births: int = 0
     deaths: int = 0
     hunts: int = 0
-    supervisors: dict[Species, Supervisor] = field(default_factory=dict)
-    objectives: dict[Species, Objective] = field(default_factory=dict)
+    supervisors: dict[Species, "Supervisor"] = field(default_factory=dict)
+    objectives: dict[Species, "Objective"] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # Crea el generador aleatorio usando la semilla de la configuracion.
@@ -148,42 +144,29 @@ class World:
         }
 
     def resolve_reproduction(self) -> None:
-        # Convierte parejas compatibles en nuevas crias al final del tick.
         from agents.animal import Animal
-
         used: set[str] = set()
+        
         for first in self.reproduction_requests:
             if first.identifier in used or not first.alive:
                 continue
-            partner = next(
-                (
-                    candidate
-                    for candidate in self.reproduction_requests
-                    if candidate.identifier not in used
-                    and candidate is not first
-                    and candidate.alive
-                    and candidate.species == first.species
-                    and candidate.x == first.x
-                    and candidate.y == first.y
-                ),
-                None,
-            )
+            partner = next((c for c in self.reproduction_requests if c.identifier not in used and c is not first and c.alive and c.species == first.species and c.x == first.x and c.y == first.y), None)
+            
             if partner is None:
                 continue
-            child = Animal(
-                first.species,
-                first.x,
-                first.y,
-                self.config.initial_energy,
-                first.policy,
-            )
+                
+            # Restar costo energético a ambos padres
+            first.energy -= self.config.reproduction_cost
+            partner.energy -= self.config.reproduction_cost
+            
+            child = Animal(species=first.species, x=first.x, y=first.y, energy=self.config.initial_energy, policy=first.policy)
             self.animals.append(child)
             self.births += 1
             used.update((first.identifier, partner.identifier))
+            
         self.reproduction_requests.clear()
 
     def regrow_food(self) -> None:
-        # Regenera comida en posiciones libres segun la tasa configurada.
         attempts = int(self.config.width * self.config.height * self.config.food_regrowth_rate)
         for _ in range(attempts):
             if self.rng.random() < self.config.food_regrowth_rate:

@@ -1,7 +1,5 @@
 # Individuos y estado basico de los animales.
-
 from __future__ import annotations
-
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -15,13 +13,10 @@ if TYPE_CHECKING:
     from config import SimulationConfig
     from environment.world import World
 
-
 class Species(Enum):
     # Especies disponibles en el ecosistema.
-
     HERBIVORE = "herbivore"
     CARNIVORE = "carnivore"
-
 
 @dataclass
 class Animal:
@@ -48,6 +43,8 @@ class Animal:
 
     def act(self, world: "World") -> None:
         # Selecciona y ejecuta una accion, actualiza edad y comprueba su muerte.
+        if not self.alive:
+            return
         action = self.policy.choose_action(self, world)
         self.execute_action(action, world)
 
@@ -62,7 +59,7 @@ class Animal:
         elif action == Action.FLEE:
             self.flee(world)
         elif action == Action.REST:
-            self.energy += 0.1
+            self.energy += world.config.rest_recovery_rate
         elif action == Action.REPRODUCE:
             world.queue_reproduction(self)
 
@@ -108,8 +105,9 @@ class Animal:
             return
         food = world.food_at(self.x, self.y)
         if food is not None:
-            self.energy += food.energy
-            world.foods.remove(food)
+            self.energy += world.config.food_energy
+            if food in world.foods:
+                world.foods.remove(food)
 
     def hunt(self, world: "World") -> None:
         # Caza un herbivoro que comparta su casilla y obtiene energia.
@@ -118,7 +116,7 @@ class Animal:
         prey = world.animal_at(self.x, self.y, Species.HERBIVORE)
         if prey is not None:
             prey.alive = False
-            self.energy += world.config.hunt_energy
+            self.energy += world.config.hunt_energy_gain
             world.hunts += 1
 
     def calculate_action_cost(self, action: Action, world: "World") -> float:

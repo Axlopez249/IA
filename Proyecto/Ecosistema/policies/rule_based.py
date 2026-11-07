@@ -34,3 +34,36 @@ class RuleBasedPolicy:
         if animal.energy >= world.config.rest_energy_threshold:
             return Action.REST
         return Action.MOVE
+
+    def herbivore_policy(agent, local_perception):
+        """
+        local_perception: dict con 'predator_nearby', 'food_here', 'mate_here'
+        """
+        if local_perception.get('predator_nearby'):
+            return Action.FLEE
+        
+        if local_perception.get('food_here') and agent.energy < 40:
+            return Action.EAT
+            
+        if agent.can_reproduce() and local_perception.get('mate_here'):
+            return Action.REPRODUCE
+            
+        if agent.energy < 15:
+            return Action.REST
+            
+        return Action.MOVE
+
+    def carnivore_policy(agent, local_perception):
+        """
+        local_perception: dict con 'prey_here', 'mate_here'
+        """
+        if local_perception.get('prey_here'):
+            return Action.HUNT
+            
+        if agent.can_reproduce() and local_perception.get('mate_here'):
+            return Action.REPRODUCE
+            
+        if agent.energy < 15:
+            return Action.REST
+            
+        return Action.MOVE
