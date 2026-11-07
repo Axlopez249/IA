@@ -10,7 +10,6 @@ from agents.animal import Species
 from config import SimulationConfig
 from learning.network import NeuralNetwork
 from learning.observations import OBSERVATION_SIZE, build_observation
-from main import build_world
 from policies.neural import NeuralPolicy
 from policies.rule_based import RuleBasedPolicy
 
@@ -46,6 +45,7 @@ def collect_examples(
     # Ejecuta mundos con reglas y guarda decisiones como datos de entrenamiento.
     examples: list[TrainingExample] = []
     teacher = RuleBasedPolicy()
+    from main import build_world
 
     for episode in range(episodes):
         # Cada episodio usa una semilla diferente para generar situaciones variadas.

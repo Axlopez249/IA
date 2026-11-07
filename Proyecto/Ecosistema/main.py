@@ -6,6 +6,7 @@ from agents.animal import Animal, Species, Variation
 from config import SimulationConfig
 from environment.resources import Food
 from environment.world import World
+from learning.training import train_species_policy
 from metrics.collector import snapshot
 from policies.neural import NeuralPolicy
 from policies.rule_based import RuleBasedPolicy
@@ -16,13 +17,27 @@ def build_world(
 	config: SimulationConfig | None = None,
 	use_neural_policy: bool = False,
 	supervisors: dict[Species, Supervisor] | None = None,
+	policies: dict[Species, NeuralPolicy] | None = None,
 ) -> World:
 	# Crea un mundo con comida y poblaciones iniciales segun la configuracion.
 	config = config or SimulationConfig()
 	world = World(config, supervisors=supervisors or {})
+	# Entrenamiento de politicas neuronales para cada especie si se solicita.
+	# Importante para que los animales no inicialicen pesos y bias, si no que tengan ajustados.
 	if use_neural_policy:
-		herbivore_policy = NeuralPolicy(Species.HERBIVORE, seed=config.seed)
-		carnivore_policy = NeuralPolicy(Species.CARNIVORE, seed=config.seed + 1)
+		if policies is None:
+			herbivore_policy, _ = train_species_policy(
+				Species.HERBIVORE,
+				config,
+			)
+			carnivore_policy, _ = train_species_policy(
+				Species.CARNIVORE,
+				config,
+				seed=config.seed + 1,
+			)
+		else:
+			herbivore_policy = policies[Species.HERBIVORE]
+			carnivore_policy = policies[Species.CARNIVORE]
 	else:
 		herbivore_policy = RuleBasedPolicy()
 		carnivore_policy = herbivore_policy

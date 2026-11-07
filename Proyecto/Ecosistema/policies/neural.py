@@ -9,6 +9,7 @@ from agents.actions import Action
 from agents.animal import Species
 from learning.network import NeuralNetwork
 from learning.observations import OBSERVATION_SIZE, build_observation
+from supervisors.base import action_for_objective
 
 if TYPE_CHECKING:
     from agents.animal import Animal
@@ -50,6 +51,10 @@ class NeuralPolicy:
         )
 
     def choose_action(self, animal: "Animal", world: "World") -> Action:
+        supervised_action = action_for_objective(animal, world)
+        if supervised_action is not None:
+            return supervised_action
+
         # Observa el mundo, calcula logits y selecciona una accion valida.
         observation = build_observation(animal, world)
         logits = self.network.forward(observation)

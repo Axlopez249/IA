@@ -33,6 +33,8 @@ class SimulationConfig:
     seed: int = 7
     max_age: int = 300
     perception_radius: int = 5
+    min_herbivores: int = 10
+    min_carnivores: int = 5
     max_herbivores: int = 100
     max_carnivores: int = 50
 	
@@ -46,8 +48,16 @@ class SimulationConfig:
             self.max_steps,
             self.max_age,
             self.perception_radius,
+            self.min_herbivores,
+            self.min_carnivores,
+            self.max_herbivores,
+            self.max_carnivores,
         )):
             raise ValueError("Las cantidades y limites no pueden ser negativos.")
+        if self.min_herbivores > self.max_herbivores:
+            raise ValueError("min_herbivores no puede superar max_herbivores.")
+        if self.min_carnivores > self.max_carnivores:
+            raise ValueError("min_carnivores no puede superar max_carnivores.")
         if not 0.0 <= self.food_regrowth_rate <= 1.0:
             raise ValueError("food_regrowth_rate debe estar entre cero y uno.")
         if any(value < 0.0 for value in (

@@ -26,7 +26,7 @@ class World:
     deaths: int = 0
     hunts: int = 0
     supervisors: dict[Species, "Supervisor"] = field(default_factory=dict)
-    objectives: dict[Species, "Objective"] = field(default_factory=dict)
+    objectives: dict[Species, "Objective | None"] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # Crea el generador aleatorio usando la semilla de la configuracion.
@@ -165,7 +165,7 @@ class World:
                     y=first.y, 
                     energy=self.config.initial_energy, 
                     policy=first.policy,
-                    variation=first.variation  # <--- NUEVA LÍNEA
+                    variation=first.variation  
                 )
                 self.animals.append(child)
                 self.births += 1

@@ -93,6 +93,7 @@ class NeuralNetwork:
             activate=False,
         )
 
+    # Funcion para que los outputs de la red sean probabilidades y no logits, para que puedan ser interpretados como tal. La suma de todos da 1
     def softmax(self, logits: list[float]) -> list[float]:
         # Convierte logits en probabilidades sin desbordamientos numericos.
         maximum = max(logits)
@@ -174,8 +175,7 @@ class NeuralNetwork:
             for hidden_index in range(self.hidden_size):
                 # nuevos pesos de salida = pesos de salida - tasa de aprendizaje * gradiente de pesos de salida
                 output_weight_gradients[output_index][hidden_index] = (
-                    output_gradient[output_index]
-                    * cache["second_hidden"][hidden_index]
+                    output_gradient[output_index] * cache["second_hidden"][hidden_index]
                 )
 
                 # Actualiza el gradiente de la capa oculta.
