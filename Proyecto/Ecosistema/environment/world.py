@@ -144,27 +144,34 @@ class World:
         }
 
     def resolve_reproduction(self) -> None:
-        from agents.animal import Animal
-        used: set[str] = set()
-        
-        for first in self.reproduction_requests:
-            if first.identifier in used or not first.alive:
-                continue
-            partner = next((c for c in self.reproduction_requests if c.identifier not in used and c is not first and c.alive and c.species == first.species and c.x == first.x and c.y == first.y), None)
+            from agents.animal import Animal
+            used: set[str] = set()
             
-            if partner is None:
-                continue
+            for first in self.reproduction_requests:
+                if first.identifier in used or not first.alive:
+                    continue
+                partner = next((c for c in self.reproduction_requests if c.identifier not in used and c is not first and c.alive and c.species == first.species and c.x == first.x and c.y == first.y), None)
                 
-            # Restar costo energético a ambos padres
-            first.energy -= self.config.reproduction_cost
-            partner.energy -= self.config.reproduction_cost
-            
-            child = Animal(species=first.species, x=first.x, y=first.y, energy=self.config.initial_energy, policy=first.policy)
-            self.animals.append(child)
-            self.births += 1
-            used.update((first.identifier, partner.identifier))
-            
-        self.reproduction_requests.clear()
+                if partner is None:
+                    continue
+                    
+                first.energy -= self.config.reproduction_cost
+                partner.energy -= self.config.reproduction_cost
+                
+                # El hijo hereda la variación de su progenitor
+                child = Animal(
+                    species=first.species, 
+                    x=first.x, 
+                    y=first.y, 
+                    energy=self.config.initial_energy, 
+                    policy=first.policy,
+                    variation=first.variation  # <--- NUEVA LÍNEA
+                )
+                self.animals.append(child)
+                self.births += 1
+                used.update((first.identifier, partner.identifier))
+                
+            self.reproduction_requests.clear()
 
     def regrow_food(self) -> None:
         attempts = int(self.config.width * self.config.height * self.config.food_regrowth_rate)

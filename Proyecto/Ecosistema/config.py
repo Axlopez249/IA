@@ -7,8 +7,8 @@ from dataclasses import dataclass
 class SimulationConfig:
     width: int = 30
     height: int = 20
-    initial_herbivores: int = 8
-    initial_carnivores: int = 3
+    initial_herbivores: int = 50
+    initial_carnivores: int = 20
     initial_food: int = 45
     food_regrowth_rate: float = 0.08
     

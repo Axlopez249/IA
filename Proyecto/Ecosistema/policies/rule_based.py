@@ -1,69 +1,67 @@
-# Politica determinista minima para la Fase 1.
+"""Política basada en reglas que obedece al supervisor."""
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
-
 from agents.actions import Action
+from policies.base import Policy
+from supervisors.objectives import Objective
 
 if TYPE_CHECKING:
     from agents.animal import Animal
     from environment.world import World
 
 
-class RuleBasedPolicy:
-    # Decide segun la especie y el estado inmediato del entorno.
+class RuleBasedPolicy(Policy):
+    def choose_action(self, animal: "Animal", world: "World") -> Action:
+        # Selecciona una acción basada en reglas y el objetivo del supervisor.
 
-    def choose_action(self, animal: "Animal", world: "World") -> "Action":
-        # Selecciona una accion usando reglas sencillas y observaciones locales.
-        partner = world.animal_at(animal.x, animal.y, animal.species, exclude=animal)
-        if partner is not None and animal.can_reproduce(world.config):
-            return Action.REPRODUCE
-
-        if animal.species.value == "herbivore":
-            if world.nearest_predator(animal) is not None:
+        # CAPA 1: INSTINTO DE SUPERVIVENCIA INMEDIATA
+        from agents.animal import Species
+        if animal.species == Species.HERBIVORE:
+            predator = world.nearest_predator(animal)
+            # Si el depredador está muy cerca (radio <= 2), huir es prioridad absoluta
+            if predator and world.distance(animal, predator) <= 2:
                 return Action.FLEE
-            if world.food_at(animal.x, animal.y) is not None:
+                
+            # Si hay comida en la misma celda, comerla
+            if world.food_at(animal.x, animal.y):
                 return Action.EAT
-            if animal.energy >= world.config.rest_energy_threshold:
+        
+        elif animal.species == Species.CARNIVORE:
+            # Si hay una presa viva en su misma celda, cazarla
+            if world.animal_at(animal.x, animal.y, Species.HERBIVORE):
+                return Action.HUNT
+
+        # CAPA 2: INTELIGENCIA DE ENJAMBRE (SUPERVISOR)
+        objective = animal.objective
+
+        # Objetivo: MULTIPLICARSE / AGRUPARSE
+        if objective == Objective.GROUP:
+            if animal.can_reproduce(world.config):
+                # Verificar si hay una pareja compatible en la misma celda
+                mate = world.animal_at(animal.x, animal.y, animal.species, exclude=animal)
+                if mate and mate.can_reproduce(world.config):
+                    return Action.REPRODUCE
+            # Si no hay pareja en la celda, moverse por el mapa para encontrar una
+            return Action.MOVE
+
+        # Objetivo: ALIMENTARSE / CAZAR
+        if objective in (Objective.SEARCH_FOOD, Objective.HUNT):
+            # La acción instintiva de comer/cazar ya se evaluó en la Capa 1. 
+            # Si llegamos aquí es porque no hay alimento en esta celda,
+            # así que la acción lógica obligatoria es moverse para buscarlo.
+            return Action.MOVE
+
+        # Objetivo: SOBREVIVIR (Población en riesgo de extinción)
+        if objective == Objective.SURVIVE:
+            # Conservar energía es la máxima prioridad
+            if animal.energy < world.config.max_energy * 0.8:
                 return Action.REST
             return Action.MOVE
 
-        if world.animal_at(animal.x, animal.y, "herbivore") is not None:
-            return Action.HUNT
-        if animal.energy >= world.config.rest_energy_threshold:
-            return Action.REST
-        return Action.MOVE
-
-    def herbivore_policy(agent, local_perception):
-        """
-        local_perception: dict con 'predator_nearby', 'food_here', 'mate_here'
-        """
-        if local_perception.get('predator_nearby'):
-            return Action.FLEE
-        
-        if local_perception.get('food_here') and agent.energy < 40:
-            return Action.EAT
-            
-        if agent.can_reproduce() and local_perception.get('mate_here'):
-            return Action.REPRODUCE
-            
-        if agent.energy < 15:
-            return Action.REST
-            
-        return Action.MOVE
-
-    def carnivore_policy(agent, local_perception):
-        """
-        local_perception: dict con 'prey_here', 'mate_here'
-        """
-        if local_perception.get('prey_here'):
-            return Action.HUNT
-            
-        if agent.can_reproduce() and local_perception.get('mate_here'):
-            return Action.REPRODUCE
-            
-        if agent.energy < 15:
+        # Objetivo: EXPLORAR (Estado de bienestar por defecto)
+        # Toman descansos preventivos si la energía baja del umbral
+        if animal.energy < world.config.rest_energy_threshold:
             return Action.REST
             
         return Action.MOVE

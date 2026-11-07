@@ -2,14 +2,14 @@
 
 import argparse
 
-from agents.animal import Animal, Species
+from agents.animal import Animal, Species, Variation
 from config import SimulationConfig
 from environment.resources import Food
 from environment.world import World
 from metrics.collector import snapshot
 from policies.neural import NeuralPolicy
 from policies.rule_based import RuleBasedPolicy
-from supervisors.base import Supervisor
+from supervisors.base import Supervisor, RuleBasedSupervisor
 
 
 def build_world(
@@ -26,18 +26,21 @@ def build_world(
 	else:
 		herbivore_policy = RuleBasedPolicy()
 		carnivore_policy = herbivore_policy
-
+		
 	for _ in range(config.initial_food):
 		x, y = world.random_position()
 		world.add_food(Food(x, y, config.food_energy))
-	for species, amount in (
-		(Species.HERBIVORE, config.initial_herbivores),
-		(Species.CARNIVORE, config.initial_carnivores),
-	):
-		policy = herbivore_policy if species == Species.HERBIVORE else carnivore_policy
-		for _ in range(amount):
-			x, y = world.random_position()
-			world.add_animal(Animal(species, x, y, config.initial_energy, policy))
+		
+	for _ in range(config.initial_herbivores):
+		x, y = world.random_position()
+		var = world.rng.choice([Variation.H_NORMAL, Variation.H_FAST, Variation.H_SLOW])
+		world.add_animal(Animal(Species.HERBIVORE, x, y, config.initial_energy, herbivore_policy, variation=var))
+		
+	for _ in range(config.initial_carnivores):
+		x, y = world.random_position()
+		var = world.rng.choice([Variation.C_RESISTANT, Variation.C_FAST])
+		world.add_animal(Animal(Species.CARNIVORE, x, y, config.initial_energy, carnivore_policy, variation=var))
+
 	return world
 
 
@@ -47,6 +50,14 @@ def run(
 	visualize: bool = False,
 	supervisors: dict[Species, Supervisor] | None = None,
 ) -> None:
+
+	#Inteligencia de enjambre
+	if supervisors is None:
+		supervisors = {
+			Species.HERBIVORE: RuleBasedSupervisor(Species.HERBIVORE),
+			Species.CARNIVORE: RuleBasedSupervisor(Species.CARNIVORE)
+		}
+
 	# Ejecuta la simulacion y muestra un resumen periodico de sus metricas.
 	world = build_world(
 		use_neural_policy=use_neural_policy,

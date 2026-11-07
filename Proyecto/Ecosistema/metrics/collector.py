@@ -7,13 +7,14 @@ if TYPE_CHECKING:
     from environment.world import World
 
 def snapshot(world: "World") -> dict[str, int | float]:
-    species_count = Counter(animal.species.value for animal in world.animals)
-    h_count = species_count["herbivore"]
-    c_count = species_count["carnivore"]
+    h_count = sum(1 for a in world.animals if a.species.value == "herbivore")
+    c_count = sum(1 for a in world.animals if a.species.value == "carnivore")
     
     h_energy = sum(a.energy for a in world.animals if a.species.value == "herbivore") / (h_count if h_count else 1)
     c_energy = sum(a.energy for a in world.animals if a.species.value == "carnivore") / (c_count if c_count else 1)
 
+    # Contar las variaciones genéticas vivas en este turno
+    variations = Counter(animal.variation.value for animal in world.animals if hasattr(animal, 'variation') and animal.variation)
     return {
         "step": world.step_count,
         "animals": len(world.animals),
@@ -26,4 +27,5 @@ def snapshot(world: "World") -> dict[str, int | float]:
         "births": world.births,
         "deaths": world.deaths,
         "hunts": world.hunts,
+        "genetics": dict(variations) # verificar 5 especies
     }

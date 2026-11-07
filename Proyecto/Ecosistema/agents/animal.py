@@ -18,15 +18,24 @@ class Species(Enum):
     HERBIVORE = "herbivore"
     CARNIVORE = "carnivore"
 
+class Variation(Enum):
+    # Carnívoras
+    C_RESISTANT = "c_resistant" # Lenta pero aguanta mucho (1 acción, metabolismo bajo)
+    C_FAST = "c_fast"           # Rápida pero gasta más (2 acciones, metabolismo alto)
+    # Herbívoras
+    H_NORMAL = "h_normal"       # Balanceada (2 acciones, metabolismo normal)
+    H_FAST = "h_fast"           # Muy rápida pero aguanta poco (3 acciones, metabolismo alto)
+    H_SLOW = "h_slow"           # Muy lenta pero muy resistente (1 acción, metabolismo bajo)
+
 @dataclass
 class Animal:
     # Representa un individuo con posicion, energia, edad y politica.
-
     species: Species
     x: int
     y: int
     energy: float
     policy: Policy
+    variation: Variation | None = None
     identifier: str = ""
     alive: bool = True
     age: int = 0
@@ -36,17 +45,39 @@ class Animal:
         # Asigna un identificador corto cuando el individuo no tiene uno.
         if not self.identifier:
             self.identifier = str(uuid4())[:8]
+        if self.variation is None:
+            self.variation = Variation.H_NORMAL if self.species == Species.HERBIVORE else Variation.C_FAST
 
+    # Retorna la cantidad de acciones por turno y el multiplicador de metabolismo segun la variacion.
+    def get_traits(self) -> tuple[int, float]:
+            if self.variation == Variation.H_NORMAL:
+                return 2, 1.0
+            elif self.variation == Variation.H_FAST:
+                return 3, 1.5
+            elif self.variation == Variation.H_SLOW:
+                return 1, 0.5
+            elif self.variation == Variation.C_RESISTANT:
+                return 1, 0.5
+            elif self.variation == Variation.C_FAST:
+                return 2, 1.2
+            return 1, 1.0
+    
     def can_reproduce(self, config: "SimulationConfig") -> bool:
         # Indica si el individuo cumple las condiciones basicas para reproducirse.
         return self.age >= config.reproduction_age and self.energy >= config.reproduction_energy_threshold
 
     def act(self, world: "World") -> None:
-        # Selecciona y ejecuta una accion, actualiza edad y comprueba su muerte.
-        if not self.alive:
-            return
-        action = self.policy.choose_action(self, world)
-        self.execute_action(action, world)
+            if not self.alive:
+                return
+            
+            speed, _ = self.get_traits()
+            
+            # El ave ejecuta 'X' cantidad de acciones dependiendo de su velocidad
+            for _ in range(speed):
+                if not self.alive:
+                    break
+                action = self.policy.choose_action(self, world)
+                self.execute_action(action, world)
 
     def execute_action(self, action: Action, world: "World") -> None:
         # Ejecuta una accion concreta; tambien sirve para futuros entornos de entrenamiento.
@@ -65,7 +96,10 @@ class Animal:
 
         self.energy -= self.calculate_action_cost(action, world)
         self.energy = min(self.energy, world.config.max_energy)
+        
+        # Envejecen con cada acción, haciendo que las aves rápidas vivan menos turnos
         self.age += 1
+        
         if self.energy <= 0 or self.age >= world.config.max_age:
             self.alive = False
 
@@ -110,19 +144,21 @@ class Animal:
                 world.foods.remove(food)
 
     def hunt(self, world: "World") -> None:
-        # Caza un herbivoro que comparta su casilla y obtiene energia.
-        if self.species != Species.CARNIVORE:
-            return
-        prey = world.animal_at(self.x, self.y, Species.HERBIVORE)
-        if prey is not None:
-            prey.alive = False
-            self.energy += world.config.hunt_energy_gain
-            world.hunts += 1
+            if self.species != Species.CARNIVORE:
+                return
+            prey = world.animal_at(self.x, self.y, Species.HERBIVORE)
+            if prey is not None and prey.alive:
+                prey.alive = False
+                self.energy += world.config.hunt_energy_gain
+                world.hunts += 1
 
     def calculate_action_cost(self, action: Action, world: "World") -> float:
-        # Calcula el coste energetico de una accion individual.
-        if action in (Action.MOVE, Action.FLEE):
-            return world.config.movement_cost + world.config.hunger_cost
-        if action == Action.REPRODUCE:
-            return world.config.reproduction_cost + world.config.hunger_cost
-        return world.config.hunger_cost
+            _, metabolism = self.get_traits()
+            base_cost = world.config.hunger_cost
+            
+            if action in (Action.MOVE, Action.FLEE):
+                base_cost += world.config.movement_cost
+            elif action == Action.REPRODUCE:
+                base_cost += world.config.reproduction_cost
+                
+            return base_cost * metabolism
