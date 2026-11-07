@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from .actions import Action
 from policies.base import Policy
+from supervisors.objectives import Objective
 
 if TYPE_CHECKING:
     from config import SimulationConfig
@@ -34,6 +35,7 @@ class Animal:
     identifier: str = ""
     alive: bool = True
     age: int = 0
+    objective: Objective | None = None
 
     def __post_init__(self) -> None:
         # Asigna un identificador corto cuando el individuo no tiene uno.
@@ -65,6 +67,7 @@ class Animal:
             world.queue_reproduction(self)
 
         self.energy -= self.calculate_action_cost(action, world)
+        self.energy = min(self.energy, world.config.max_energy)
         self.age += 1
         if self.energy <= 0 or self.age >= world.config.max_age:
             self.alive = False

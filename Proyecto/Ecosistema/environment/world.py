@@ -7,7 +7,10 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from config import SimulationConfig
+from agents.animal import Species
 from .resources import Food
+from supervisors.base import Supervisor
+from supervisors.objectives import Objective
 
 if TYPE_CHECKING:
     from agents.animal import Animal
@@ -26,6 +29,8 @@ class World:
     births: int = 0
     deaths: int = 0
     hunts: int = 0
+    supervisors: dict[Species, Supervisor] = field(default_factory=dict)
+    objectives: dict[Species, Objective] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # Crea el generador aleatorio usando la semilla de la configuracion.
@@ -124,14 +129,23 @@ class World:
 
     def step(self) -> None:
         # Ejecuta un tick, resuelve reproduccion, muertes y regeneracion.
+        self.update_objectives()
         for animal in list(self.animals):
             if animal.alive:
+                animal.objective = self.objectives.get(animal.species)
                 animal.act(self)
         self.resolve_reproduction()
         self.deaths += sum(not animal.alive for animal in self.animals)
         self.regrow_food()
         self.animals = [animal for animal in self.animals if animal.alive]
         self.step_count += 1
+
+    def update_objectives(self) -> None:
+        """Actualiza una vez por especie los objetivos de supervisores activos."""
+        self.objectives = {
+            species: supervisor.choose_objective(self)
+            for species, supervisor in self.supervisors.items()
+        }
 
     def resolve_reproduction(self) -> None:
         # Convierte parejas compatibles en nuevas crias al final del tick.

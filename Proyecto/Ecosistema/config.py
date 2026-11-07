@@ -27,3 +27,30 @@ class SimulationConfig:
 	max_age: int = 300
 	perception_radius: int = 5
 	rest_energy_threshold: float = 18.0
+
+	def __post_init__(self) -> None:
+		if self.width <= 0 or self.height <= 0:
+			raise ValueError("El ancho y el alto deben ser mayores que cero.")
+		if any(value < 0 for value in (
+			self.initial_herbivores,
+			self.initial_carnivores,
+			self.initial_food,
+			self.max_steps,
+			self.max_age,
+			self.perception_radius,
+		)):
+			raise ValueError("Las cantidades y limites no pueden ser negativos.")
+		if not 0.0 <= self.food_regrowth_rate <= 1.0:
+			raise ValueError("food_regrowth_rate debe estar entre cero y uno.")
+		if any(value < 0.0 for value in (
+			self.initial_energy,
+			self.max_energy,
+			self.movement_cost,
+			self.hunger_cost,
+			self.food_energy,
+			self.hunt_energy,
+			self.reproduction_energy_threshold,
+			self.reproduction_cost,
+			self.rest_energy_threshold,
+		)):
+			raise ValueError("Los valores energeticos no pueden ser negativos.")
