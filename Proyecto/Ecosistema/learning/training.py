@@ -53,10 +53,12 @@ def collect_examples(
         world = build_world(episode_config)
 
         for _ in range(steps_per_episode):
+            world.update_objectives()
             for animal in list(world.animals):
                 if not animal.alive or animal.species != species:
                     continue
 
+                animal.objective = world.objectives.get(animal.species)
                 observation = build_observation(animal, world)
                 action = teacher.choose_action(animal, world)
                 examples.append(TrainingExample(observation, action))

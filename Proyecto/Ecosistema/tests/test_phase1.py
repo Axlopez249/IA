@@ -1,7 +1,7 @@
 import unittest
 
 from agents.actions import Action
-from agents.animal import Animal, Species
+from agents.animal import Animal, Species, Variation
 from config import SimulationConfig
 from environment.resources import Food
 from environment.world import World
@@ -32,7 +32,14 @@ class Phase1Tests(unittest.TestCase):
         # Comprueba que comer aumenta energia y elimina el recurso.
         config = SimulationConfig(width=3, height=3, initial_energy=2, hunger_cost=0)
         world = World(config)
-        animal = Animal(Species.HERBIVORE, 1, 1, 2, RuleBasedPolicy())
+        animal = Animal(
+            Species.HERBIVORE,
+            1,
+            1,
+            2,
+            RuleBasedPolicy(),
+            variation=Variation.H_SLOW,
+        )
         world.add_animal(animal)
         world.add_food(Food(1, 1, 4))
 
@@ -46,7 +53,14 @@ class Phase1Tests(unittest.TestCase):
         # Comprueba que un animal sin energia se elimina del mundo.
         config = SimulationConfig(initial_energy=0, hunger_cost=0)
         world = World(config)
-        animal = Animal(Species.HERBIVORE, 0, 0, 0, RuleBasedPolicy())
+        animal = Animal(
+            Species.HERBIVORE,
+            0,
+            0,
+            0,
+            FixedPolicy(Action.MOVE),
+            variation=Variation.H_SLOW,
+        )
         world.add_animal(animal)
 
         world.step()
@@ -63,13 +77,14 @@ class Phase1Tests(unittest.TestCase):
             1,
             5,
             FixedPolicy(Action.MOVE),
+            variation=Variation.H_SLOW,
         )
         world.add_animal(animal)
 
         world.step()
 
         self.assertEqual(animal.age, 1)
-        self.assertEqual(animal.energy, 4.4)
+        self.assertEqual(animal.energy, 4.7)
         self.assertTrue(world.in_bounds(animal.x, animal.y))
 
     def test_animal_dies_at_maximum_age(self) -> None:
@@ -81,6 +96,7 @@ class Phase1Tests(unittest.TestCase):
             0,
             5,
             FixedPolicy(Action.REST),
+            variation=Variation.H_SLOW,
         )
         world.add_animal(animal)
 
@@ -137,6 +153,7 @@ class Phase1Tests(unittest.TestCase):
             0,
             4,
             FixedPolicy(Action.REST),
+            variation=Variation.H_SLOW,
         )
         world.add_animal(animal)
         world.add_food(Food(0, 0, 4))

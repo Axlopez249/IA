@@ -1,9 +1,10 @@
 import unittest
 
-from agents.animal import Animal, Species
+from agents.animal import Animal, Species, Variation
 from config import SimulationConfig
 from environment.world import World
 from policies.rule_based import RuleBasedPolicy
+from supervisors.base import RuleBasedSupervisor
 
 
 class Phase2Tests(unittest.TestCase):
@@ -15,7 +16,14 @@ class Phase2Tests(unittest.TestCase):
         # Comprueba que una caceria elimina a la presa y actualiza metricas.
         world = self.make_world()
         carnivore = Animal(Species.CARNIVORE, 3, 3, 5, RuleBasedPolicy())
-        herbivore = Animal(Species.HERBIVORE, 3, 3, 5, RuleBasedPolicy())
+        herbivore = Animal(
+            Species.HERBIVORE,
+            3,
+            3,
+            5,
+            RuleBasedPolicy(),
+            variation=Variation.H_SLOW,
+        )
         world.add_animal(carnivore)
         world.add_animal(herbivore)
 
@@ -29,7 +37,14 @@ class Phase2Tests(unittest.TestCase):
     def test_herbivore_flees_from_nearby_predator(self) -> None:
         # Comprueba que un herbivoro se aleja de un depredador cercano.
         world = self.make_world()
-        herbivore = Animal(Species.HERBIVORE, 3, 3, 5, RuleBasedPolicy())
+        herbivore = Animal(
+            Species.HERBIVORE,
+            3,
+            3,
+            5,
+            RuleBasedPolicy(),
+            variation=Variation.H_SLOW,
+        )
         predator = Animal(Species.CARNIVORE, 4, 3, 5, RuleBasedPolicy())
         world.add_animal(herbivore)
         world.add_animal(predator)
@@ -59,10 +74,32 @@ class Phase2Tests(unittest.TestCase):
             initial_energy=5,
             reproduction_cost=0,
             hunger_cost=0,
+            min_herbivores=0,
         )
-        world = World(config)
-        first = Animal(Species.HERBIVORE, 2, 2, 5, RuleBasedPolicy(), age=1)
-        second = Animal(Species.HERBIVORE, 2, 2, 5, RuleBasedPolicy(), age=1)
+        world = World(
+            config,
+            supervisors={
+                Species.HERBIVORE: RuleBasedSupervisor(Species.HERBIVORE),
+            },
+        )
+        first = Animal(
+            Species.HERBIVORE,
+            2,
+            2,
+            5,
+            RuleBasedPolicy(),
+            variation=Variation.H_SLOW,
+            age=1,
+        )
+        second = Animal(
+            Species.HERBIVORE,
+            2,
+            2,
+            5,
+            RuleBasedPolicy(),
+            variation=Variation.H_SLOW,
+            age=1,
+        )
         world.add_animal(first)
         world.add_animal(second)
 

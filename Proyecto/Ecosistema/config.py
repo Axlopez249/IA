@@ -45,6 +45,7 @@ class SimulationConfig:
             self.initial_herbivores,
             self.initial_carnivores,
             self.initial_food,
+            self.reproduction_age,
             self.max_steps,
             self.max_age,
             self.perception_radius,
@@ -67,8 +68,10 @@ class SimulationConfig:
             self.hunger_cost,
             self.food_energy,
             self.hunt_energy_gain,
+            self.hunt_energy,
             self.reproduction_energy_threshold,
             self.reproduction_cost,
             self.rest_recovery_rate,
+            self.rest_energy_threshold,
         )):
             raise ValueError("Los valores energeticos no pueden ser negativos.")

@@ -120,7 +120,11 @@ class World:
 
     def queue_reproduction(self, animal: "Animal") -> None:
         # Registra una solicitud de reproduccion sin duplicarla.
-        if animal not in self.reproduction_requests:
+        if (
+            animal.alive
+            and animal.can_reproduce(self.config)
+            and animal not in self.reproduction_requests
+        ):
             self.reproduction_requests.append(animal)
 
     def step(self) -> None:
@@ -148,13 +152,40 @@ class World:
             used: set[str] = set()
             
             for first in self.reproduction_requests:
-                if first.identifier in used or not first.alive:
+                if (
+                    first.identifier in used
+                    or not first.alive
+                ):
                     continue
-                partner = next((c for c in self.reproduction_requests if c.identifier not in used and c is not first and c.alive and c.species == first.species and c.x == first.x and c.y == first.y), None)
+                partner = next(
+                    (
+                        candidate
+                        for candidate in self.reproduction_requests
+                        if candidate.identifier not in used
+                        and candidate is not first
+                        and candidate.alive
+                        and candidate.species == first.species
+                        and candidate.x == first.x
+                        and candidate.y == first.y
+                    ),
+                    None,
+                )
                 
                 if partner is None:
                     continue
-                    
+
+                population_limit = (
+                    self.config.max_herbivores
+                    if first.species.value == "herbivore"
+                    else self.config.max_carnivores
+                )
+                current_population = sum(
+                    animal.alive and animal.species == first.species
+                    for animal in self.animals
+                )
+                if current_population >= population_limit:
+                    continue
+
                 first.energy -= self.config.reproduction_cost
                 partner.energy -= self.config.reproduction_cost
                 

@@ -139,7 +139,7 @@ class Animal:
             return
         food = world.food_at(self.x, self.y)
         if food is not None:
-            self.energy += world.config.food_energy
+            self.energy += food.energy
             if food in world.foods:
                 world.foods.remove(food)
 
@@ -158,7 +158,5 @@ class Animal:
             
             if action in (Action.MOVE, Action.FLEE):
                 base_cost += world.config.movement_cost
-            elif action == Action.REPRODUCE:
-                base_cost += world.config.reproduction_cost
                 
             return base_cost * metabolism

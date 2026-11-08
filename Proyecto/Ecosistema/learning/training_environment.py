@@ -43,6 +43,8 @@ class IndividualTrainingEnvironment:
         previous_hunts = self.world.hunts
         previous_births = self.world.births
 
+        self.world.update_objectives()
+        self.animal.objective = self.world.objectives.get(self.animal.species)
         if self.animal.alive:
             self.animal.execute_action(action, self.world)
 

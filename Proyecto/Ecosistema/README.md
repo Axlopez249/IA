@@ -56,6 +56,8 @@ La configuracion rechaza dimensiones no positivas, cantidades negativas, tasas f
 
 ## Contratos de extension
 
-`World` acepta un diccionario opcional de supervisores por especie. En cada paso consulta una vez a cada supervisor activo y guarda el `Objective` elegido en los animales de esa especie. Las politicas actuales no necesitan usarlo todavía; una politica futura puede leer `animal.objective` sin cambiar el ciclo del mundo.
+`World` acepta un diccionario opcional de supervisores por especie. En cada paso consulta una vez a cada supervisor activo y guarda el `Objective` elegido en los animales de esa especie. Las políticas actuales consultan el objetivo mediante `animal.objective`: el supervisor puede
+priorizar supervivencia, búsqueda de alimento, caza o reproducción antes de que la política
+individual tome su decisión.
 
 La politica individual sigue usando `choose_action(animal, world)`, por lo que las politicas basadas en reglas y las neuronales existentes mantienen compatibilidad.
