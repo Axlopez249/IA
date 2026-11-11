@@ -1,12 +1,13 @@
 # Punto de entrada para ejecutar una simulacion de la Fase 1.
 
 import argparse
+from pathlib import Path
 
 from agents.animal import Animal, Species, Variation
 from config import SimulationConfig
 from environment.resources import Food
 from environment.world import World
-from learning.training import train_species_policy
+from learning.training import load_species_policies, save_species_policies
 from metrics.collector import snapshot
 from policies.neural import NeuralPolicy
 from policies.rule_based import RuleBasedPolicy
@@ -22,19 +23,11 @@ def build_world(
 	# Crea un mundo con comida y poblaciones iniciales segun la configuracion.
 	config = config or SimulationConfig()
 	world = World(config, supervisors=supervisors or {})
-	# Entrenamiento de politicas neuronales para cada especie si se solicita.
-	# Importante para que los animales no inicialicen pesos y bias, si no que tengan ajustados.
+	# Usa politicas neuronales persistidas o redes nuevas si se solicita.
 	if use_neural_policy:
 		if policies is None:
-			herbivore_policy, _ = train_species_policy(
-				Species.HERBIVORE,
-				config,
-			)
-			carnivore_policy, _ = train_species_policy(
-				Species.CARNIVORE,
-				config,
-				seed=config.seed + 1,
-			)
+			herbivore_policy = NeuralPolicy(Species.HERBIVORE, seed=config.seed)
+			carnivore_policy = NeuralPolicy(Species.CARNIVORE, seed=config.seed + 1)
 		else:
 			herbivore_policy = policies[Species.HERBIVORE]
 			carnivore_policy = policies[Species.CARNIVORE]
@@ -64,6 +57,8 @@ def run(
 	use_neural_policy: bool = False,
 	visualize: bool = False,
 	supervisors: dict[Species, Supervisor] | None = None,
+	policies: dict[Species, NeuralPolicy] | None = None,
+	save_policy_file: str | Path | None = None,
 ) -> None:
 
 	#Inteligencia de enjambre
@@ -77,31 +72,83 @@ def run(
 	world = build_world(
 		use_neural_policy=use_neural_policy,
 		supervisors=supervisors,
+		policies=policies,
 	)
+	effective_policies = policies
+	if use_neural_policy and effective_policies is None:
+		herbivore = next(
+			(animal for animal in world.animals if animal.species == Species.HERBIVORE),
+			None,
+		)
+		carnivore = next(
+			(animal for animal in world.animals if animal.species == Species.CARNIVORE),
+			None,
+		)
+		if herbivore is not None and carnivore is not None:
+			effective_policies = {
+				Species.HERBIVORE: herbivore.policy,
+				Species.CARNIVORE: carnivore.policy,
+			}
 	total_steps = steps if steps is not None else world.config.max_steps
-	if visualize:
-		from visualization.visual import animate_world
+	try:
+		if visualize:
+			from visualization.visual import animate_world
 
-		animate_world(world, total_steps, on_step=lambda current: print(snapshot(current)))
-		return
+			animate_world(
+				world,
+				total_steps,
+				on_step=lambda current: print(snapshot(current)),
+			)
+			return
 
-	print(snapshot(world))
-	for _ in range(total_steps):
-		world.step()
-		if world.step_count % 10 == 0 or not world.animals:
-			print(snapshot(world))
-		if not world.animals:
-			break
+		print(snapshot(world))
+		for _ in range(total_steps):
+			world.step()
+			if world.step_count % 10 == 0 or not world.animals:
+				print(snapshot(world))
+			if not world.animals:
+				break
+	finally:
+		if save_policy_file and effective_policies:
+			save_species_policies(
+				effective_policies,
+				save_policy_file,
+				metadata={
+					"source": "simulation",
+					"step": world.step_count,
+					"snapshot": snapshot(world),
+				},
+			)
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Ejecuta el simulador de ecosistema.")
 	parser.add_argument("--visual", action="store_true", help="Abre la ventana 2D.")
 	parser.add_argument("--neural", action="store_true", help="Usa politicas neuronales.")
+	parser.add_argument(
+		"--policy-file",
+		default=None,
+		help="Carga pesos neuronales persistidos desde un archivo JSON.",
+	)
+	parser.add_argument(
+		"--save-policy-file",
+		default=None,
+		help="Guarda los pesos usados al finalizar la simulación.",
+	)
 	parser.add_argument("--steps", type=int, default=None, help="Numero de pasos.")
 	args = parser.parse_args()
+	default_best = Path("checkpoints") / "best.json"
+	policy_file = args.policy_file
+	if args.neural and policy_file is None and default_best.is_file():
+		policy_file = str(default_best)
+	policies = load_species_policies(policy_file) if policy_file else None
+	save_policy_file = args.save_policy_file
+	if args.neural and save_policy_file is None:
+		save_policy_file = str(Path("checkpoints") / "latest.json")
 	run(
 		steps=args.steps,
-		use_neural_policy=args.neural,
+		use_neural_policy=args.neural or policies is not None,
 		visualize=args.visual,
+		policies=policies,
+		save_policy_file=save_policy_file,
 	)

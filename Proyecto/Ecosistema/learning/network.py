@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import random
+from typing import Any
 
 
 def relu(value: float) -> float:
@@ -37,6 +38,66 @@ class NeuralNetwork:
         self.second_biases = [0.0] * hidden_size
         self.output_weights = self.create_weights(hidden_size, output_size, generator)
         self.output_biases = [0.0] * output_size
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serializa la arquitectura y los parámetros entrenados."""
+        return {
+            "input_size": self.input_size,
+            "hidden_size": self.hidden_size,
+            "output_size": self.output_size,
+            "first_weights": self.first_weights,
+            "first_biases": self.first_biases,
+            "second_weights": self.second_weights,
+            "second_biases": self.second_biases,
+            "output_weights": self.output_weights,
+            "output_biases": self.output_biases,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "NeuralNetwork":
+        """Reconstruye una red previamente serializada."""
+        required = (
+            "input_size",
+            "hidden_size",
+            "output_size",
+            "first_weights",
+            "first_biases",
+            "second_weights",
+            "second_biases",
+            "output_weights",
+            "output_biases",
+        )
+        missing = [key for key in required if key not in data]
+        if missing:
+            raise ValueError(f"Faltan parametros de red: {', '.join(missing)}")
+
+        network = cls(
+            int(data["input_size"]),
+            hidden_size=int(data["hidden_size"]),
+            output_size=int(data["output_size"]),
+        )
+        network.first_weights = data["first_weights"]
+        network.first_biases = data["first_biases"]
+        network.second_weights = data["second_weights"]
+        network.second_biases = data["second_biases"]
+        network.output_weights = data["output_weights"]
+        network.output_biases = data["output_biases"]
+        network._validate_shapes()
+        return network
+
+    def _validate_shapes(self) -> None:
+        if (
+            len(self.first_weights) != self.hidden_size
+            or any(len(row) != self.input_size for row in self.first_weights)
+            or len(self.first_biases) != self.hidden_size
+            or len(self.second_weights) != self.hidden_size
+            or any(len(row) != self.hidden_size for row in self.second_weights)
+            or len(self.second_biases) != self.hidden_size
+            or len(self.output_weights) != self.output_size
+            or any(len(row) != self.hidden_size for row in self.output_weights)
+            or len(self.output_biases) != self.output_size
+        ):
+            raise ValueError("La forma de los parametros de red no es valida.")
 
     def create_weights(
         self,

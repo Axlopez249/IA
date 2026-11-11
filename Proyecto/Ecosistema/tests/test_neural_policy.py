@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from agents.actions import Action
 from agents.animal import Animal, Species
@@ -7,7 +9,14 @@ from environment.resources import Food
 from environment.world import World
 from learning.network import NeuralNetwork
 from learning.observations import OBSERVATION_SIZE, build_observation
-from learning.training import TrainingExample, action_index, train_network
+from learning.training import (
+    TrainingExample,
+    action_index,
+    load_species_policies,
+    save_species_policies,
+    train_species_policies,
+    train_network,
+)
 from main import build_world
 from policies.neural import NeuralPolicy
 
@@ -52,6 +61,60 @@ class NeuralPolicyTests(unittest.TestCase):
 
         self.assertEqual(action_index(Action.MOVE), 0)
         self.assertLess(losses[-1], losses[0])
+
+    def test_persisted_policies_keep_network_predictions(self) -> None:
+        policies = {
+            Species.HERBIVORE: NeuralPolicy(Species.HERBIVORE, seed=10),
+            Species.CARNIVORE: NeuralPolicy(Species.CARNIVORE, seed=11),
+        }
+        observation = tuple(0.25 for _ in range(OBSERVATION_SIZE))
+        expected = {
+            species: policy.network.forward(observation)
+            for species, policy in policies.items()
+        }
+
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "policies.json"
+            save_species_policies(policies, path)
+            loaded = load_species_policies(path)
+
+        for species in policies:
+            self.assertEqual(
+                loaded[species].network.forward(observation),
+                expected[species],
+            )
+
+    def test_training_saves_latest_and_best_checkpoints_with_fitness(self) -> None:
+        config = SimulationConfig(
+            width=4,
+            height=4,
+            initial_herbivores=2,
+            initial_carnivores=1,
+            initial_food=2,
+            food_regrowth_rate=0,
+            max_steps=2,
+        )
+
+        with TemporaryDirectory() as directory:
+            policies, reports = train_species_policies(
+                config,
+                episodes=1,
+                steps_per_episode=1,
+                epochs=2,
+                evaluation_steps=1,
+                checkpoint_dir=directory,
+                seed=2,
+            )
+            latest = Path(directory) / "latest.json"
+            best = Path(directory) / "best.json"
+            latest_payload = latest.read_text(encoding="utf-8")
+            best_payload = best.read_text(encoding="utf-8")
+
+        self.assertTrue(policies)
+        self.assertTrue(reports[Species.HERBIVORE].losses)
+        self.assertIn('"metadata"', latest_payload)
+        self.assertIn('"fitness"', latest_payload)
+        self.assertIn('"metadata"', best_payload)
 
 
 if __name__ == "__main__":

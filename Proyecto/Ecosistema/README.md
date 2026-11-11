@@ -16,6 +16,32 @@ La simulacion imprime metricas cada diez pasos. Para abrir una ventana 2D animad
 python main.py --visual --steps 100
 ```
 
+Para entrenar las políticas neuronales por separado y guardar sus pesos:
+
+```powershell
+python train_policies.py --output checkpoints --epochs 10
+python main.py --neural --steps 100
+```
+
+El entrenamiento genera dos archivos:
+
+- `checkpoints/latest.json`: última época completada.
+- `checkpoints/best.json`: época con mejor desempeño en una simulación de evaluación.
+
+La puntuación combina supervivencia (40%), energía promedio (25%), estabilidad
+poblacional (20%), nacimientos (10%) y cacerías (5%). Cada archivo conserva
+también la época, la puntuación y las métricas de evaluación.
+
+`main.py --neural` carga automáticamente `checkpoints/best.json` si existe y
+guarda la ejecución terminada en `checkpoints/latest.json`. También se pueden
+indicar rutas explícitas con `--policy-file` y `--save-policy-file`.
+
+Para reanudar el entrenamiento:
+
+```powershell
+python train_policies.py --output checkpoints --resume checkpoints/latest.json
+```
+
 La visualizacion grafica requiere `matplotlib`. La terminal se reserva para las metricas de la simulacion y no muestra una representacion alternativa del mapa.
 
 ## Pruebas
