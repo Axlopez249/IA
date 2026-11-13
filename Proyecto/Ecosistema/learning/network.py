@@ -307,33 +307,91 @@ class NeuralNetwork:
         )
         return loss
 
+    # Esta funcion recibe una decision tomada por la politica y el resultado
+    # acumulado que produjo dentro del episodio. Con esa informacion calcula
+    # como deben cambiar los pesos para aumentar las decisiones beneficiosas
+    # y reducir las decisiones que llevaron a recompensas bajas.
+    #
+    # El metodo utiliza REINFORCE, cuyo objetivo es maximizar la probabilidad
+    # de las acciones que obtuvieron buenos retornos en un estado determinado.
     def train_policy_gradient(
         self,
         observation: tuple[float, ...],
         action_index: int,
         return_value: float,
         learning_rate: float = 0.01,
+        valid_action_indices: list[int] | None = None,
     ) -> float:
-        # Ajusta la politica para reforzar acciones con retornos positivos.
-        # La perdida es -G_t log(pi(a_t|s_t)), la forma REINFORCE de policy gradient.
+        # La accion debe existir dentro de la salida de la red. Esta primera
+        # validacion evita actualizar una posicion de salida inexistente.
         if not 0 <= action_index < self.output_size:
             raise ValueError("El indice de la accion no es valido.")
-
+        
+        # La red transforma la observacion en un logit por accion.
+        # El cache conserva las activaciones necesarias para calcular despues
+        # los gradientes de cada capa durante la retropropagacion.
         logits, cache = self.forward_with_cache(observation)
-        probabilities = self.softmax(logits)
-        # Un retorno alto aumenta la probabilidad de la accion; uno bajo la reduce.
+
+        # Si no se especifica un filtro, todas las salidas de la red son validas.
+        # Cuando se recibe una lista, solo esas acciones pueden participar en
+        # la distribucion de probabilidad de la especie que se esta entrenando.
+        valid_indices = (
+            list(range(self.output_size))
+            if valid_action_indices is None
+            else valid_action_indices
+        )
+
+        # No se puede entrenar una politica sin acciones disponibles.
+        # Tambien se verifica que cada indice apunte a una salida real de la red.
+        if not valid_indices or any(
+            not 0 <= index < self.output_size for index in valid_indices
+        ):
+            raise ValueError("Los indices de acciones validas no son correctos.")
+
+        # La accion que se esta reforzando debe pertenecer al conjunto permitido.
+        # Por ejemplo, un herbivoro no puede aprender una accion de caceria.
+        if action_index not in valid_indices:
+            raise ValueError("La accion elegida debe ser valida para la politica.")
+
+        # Se calcula softmax solo sobre las acciones validas. De esta forma,
+        # las acciones imposibles no reciben probabilidad ni interfieren en
+        # la actualizacion de la politica.
+        valid_logits = [logits[index] for index in valid_indices]
+        valid_probabilities = self.softmax(valid_logits)
+
+        # Se reconstruye el vector completo para conservar la posicion original
+        # de cada accion. Las acciones invalidas permanecen con probabilidad cero.
+        probabilities = [0.0] * self.output_size
+        for index, probability in zip(valid_indices, valid_probabilities):
+            probabilities[index] = probability
+
+        # La perdida de REINFORCE es:
+        #
+        #     perdida = -G_t * log(pi(a_t | s_t))
+        #
+        # Si el retorno es positivo, el descenso de gradiente aumenta la
+        # probabilidad de la accion tomada. Si es negativo, la reduce.
         loss = -return_value * math.log(max(probabilities[action_index], 1e-12))
+
+        # Para softmax, el gradiente de cada salida comienza siendo su
+        # probabilidad multiplicada por el retorno. Luego se corrige la salida
+        # correspondiente a la accion que realmente se ejecuto.
         output_gradient = [
             return_value * probability for probability in probabilities
         ]
         output_gradient[action_index] -= return_value
 
+        # Se preparan las matrices de gradientes de la capa de salida.
+        # Cada salida representa una accion posible de la politica.
         output_weight_gradients = [
             [0.0] * self.hidden_size for _ in range(self.output_size)
         ]
         output_bias_gradients = list(output_gradient)
         second_hidden_gradient = [0.0] * self.hidden_size
 
+        # El gradiente de cada peso de salida depende del gradiente de la accion
+        # y de la activacion que llego desde la segunda capa oculta.
+        # Al mismo tiempo se propaga el error hacia esa capa anterior.
         for output_index in range(self.output_size):
             for hidden_index in range(self.hidden_size):
                 output_weight_gradients[output_index][hidden_index] = (
@@ -345,16 +403,23 @@ class NeuralNetwork:
                     * output_gradient[output_index]
                 )
 
+        # Se atraviesa la funcion ReLU de la segunda capa. Solo las neuronas
+        # activas pueden continuar transmitiendo el gradiente.
         second_pre_gradient = [
             second_hidden_gradient[index]
             * relu_derivative(cache["second_pre_activation"][index])
             for index in range(self.hidden_size)
         ]
+
+        # Se calculan los gradientes de los pesos de la segunda capa oculta y
+        # se prepara la propagacion del error hacia la primera capa oculta.
         second_weight_gradients = [
             [0.0] * self.hidden_size for _ in range(self.hidden_size)
         ]
         first_hidden_gradient = [0.0] * self.hidden_size
 
+        # Cada conexion de esta capa se ajusta usando el gradiente recibido y
+        # la activacion producida por la capa oculta anterior.
         for second_index in range(self.hidden_size):
             for first_index in range(self.hidden_size):
                 second_weight_gradients[second_index][first_index] = (
@@ -366,11 +431,16 @@ class NeuralNetwork:
                     * second_pre_gradient[second_index]
                 )
 
+        # Se continua retrocediendo por la primera funcion ReLU para obtener
+        # el gradiente que corresponde a la primera capa oculta.
         first_pre_gradient = [
             first_hidden_gradient[index]
             * relu_derivative(cache["first_pre_activation"][index])
             for index in range(self.hidden_size)
         ]
+
+        # Se calculan los gradientes de las conexiones entre la observacion
+        # original y la primera capa oculta de la red.
         first_weight_gradients = [
             [0.0] * self.input_size for _ in range(self.hidden_size)
         ]
@@ -382,6 +452,8 @@ class NeuralNetwork:
                     * cache["inputs"][input_index]
                 )
 
+        # Todas las capas se actualizan juntas para que la red conserve una
+        # sola actualizacion coherente para esta observacion y su retorno.
         self.apply_gradients(
             first_weight_gradients,
             first_pre_gradient,
@@ -391,6 +463,9 @@ class NeuralNetwork:
             output_bias_gradients,
             learning_rate,
         )
+
+        # Se devuelve la perdida para registrar el progreso del episodio y
+        # comparar el comportamiento del entrenamiento entre iteraciones.
         return loss
 
     def apply_gradients(

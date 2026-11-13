@@ -9,6 +9,7 @@ from environment.resources import Food
 from environment.world import World
 from learning.training import load_species_policies, save_species_policies
 from metrics.collector import snapshot
+from policies.base import Policy
 from policies.neural import NeuralPolicy
 from policies.rule_based import RuleBasedPolicy
 from supervisors.base import Supervisor, RuleBasedSupervisor
@@ -18,7 +19,7 @@ def build_world(
 	config: SimulationConfig | None = None,
 	use_neural_policy: bool = False,
 	supervisors: dict[Species, Supervisor] | None = None,
-	policies: dict[Species, NeuralPolicy] | None = None,
+	policies: dict[Species, Policy] | None = None,
 ) -> World:
 	# Crea un mundo con comida y poblaciones iniciales segun la configuracion.
 	config = config or SimulationConfig()
@@ -57,7 +58,7 @@ def run(
 	use_neural_policy: bool = False,
 	visualize: bool = False,
 	supervisors: dict[Species, Supervisor] | None = None,
-	policies: dict[Species, NeuralPolicy] | None = None,
+	policies: dict[Species, Policy] | None = None,
 	save_policy_file: str | Path | None = None,
 ) -> None:
 

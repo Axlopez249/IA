@@ -19,6 +19,7 @@ from learning.training import (
 )
 from main import build_world
 from policies.neural import NeuralPolicy
+from policies.random import RandomPolicy
 
 
 class NeuralPolicyTests(unittest.TestCase):
@@ -51,6 +52,37 @@ class NeuralPolicyTests(unittest.TestCase):
 
         self.assertIn(herbivore_action, herbivore.policy.valid_actions())
         self.assertIn(carnivore_action, carnivore.policy.valid_actions())
+
+    def test_random_policy_selects_only_valid_actions(self) -> None:
+        world = build_world()
+        for species in (Species.HERBIVORE, Species.CARNIVORE):
+            policy = RandomPolicy(species, seed=3)
+            animal = next(
+                animal for animal in world.animals if animal.species == species
+            )
+            self.assertIn(policy.choose_action(animal, world), policy.valid_actions())
+
+    def test_policy_gradient_accepts_only_valid_actions(self) -> None:
+        network = NeuralNetwork(OBSERVATION_SIZE, seed=5)
+        network.train_policy_gradient(
+            tuple(0.0 for _ in range(OBSERVATION_SIZE)),
+            action_index(Action.EAT),
+            1.0,
+            valid_action_indices=[
+                action_index(action)
+                for action in NeuralPolicy(Species.HERBIVORE).valid_actions()
+            ],
+        )
+        with self.assertRaises(ValueError):
+            network.train_policy_gradient(
+                tuple(0.0 for _ in range(OBSERVATION_SIZE)),
+                action_index(Action.HUNT),
+                1.0,
+                valid_action_indices=[
+                    action_index(action)
+                    for action in NeuralPolicy(Species.HERBIVORE).valid_actions()
+                ],
+            )
 
     def test_training_reduces_loss_for_a_repeated_example(self) -> None:
         network = NeuralNetwork(OBSERVATION_SIZE, seed=4)

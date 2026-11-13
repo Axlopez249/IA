@@ -14,6 +14,7 @@ from config import SimulationConfig
 from learning.network import NeuralNetwork
 from learning.observations import OBSERVATION_SIZE, build_observation
 from policies.neural import NeuralPolicy
+from policies.base import Policy
 from policies.rule_based import RuleBasedPolicy
 
 
@@ -254,6 +255,10 @@ def train_policy_reinforce(
                 action_index(action),
                 return_value,
                 learning_rate,
+                valid_action_indices=[
+                    action_index(valid_action)
+                    for valid_action in trained_policy.valid_actions()
+                ],
             )
 
         episode_rewards.append(round(sum(reward for _, _, reward in trajectory), 4))
@@ -470,7 +475,7 @@ def train_species_policies(
 
 
 def evaluate_policies(
-    policies: dict[Species, NeuralPolicy],
+    policies: dict[Species, Policy],
     config: SimulationConfig,
     steps: int = 50,
 ) -> tuple[float, dict[str, int | float]]:
@@ -493,10 +498,22 @@ def evaluate_policies(
         policies=policies,
     )
     initial_population = len(world.animals)
+    episode_reward = 0.0
     for _ in range(steps):
         if not world.animals:
             break
+        previous_energy = sum(animal.energy for animal in world.animals)
+        previous_births = world.births
+        previous_hunts = world.hunts
+        previous_deaths = world.deaths
         world.step()
+        episode_reward += (
+            sum(animal.energy for animal in world.animals) - previous_energy
+            + 0.05 * len(world.animals)
+            + 2.0 * (world.births - previous_births)
+            + 3.0 * (world.hunts - previous_hunts)
+            - 10.0 * (world.deaths - previous_deaths)
+        )
 
     current_population = len(world.animals)
     survival = current_population / max(initial_population, 1)
@@ -529,6 +546,8 @@ def evaluate_policies(
             4,
         ),
         "survival": round(survival, 4),
+        "episode_reward": round(episode_reward, 4),
+        "episode_length": world.step_count,
     }
     return round(fitness, 6), evaluation
 

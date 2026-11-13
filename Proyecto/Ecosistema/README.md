@@ -23,9 +23,40 @@ python train_policies.py --output checkpoints --epochs 10
 python main.py --neural --steps 100
 ```
 
+Para cumplir el protocolo mínimo de evaluación, entrena tres semillas:
+
+```powershell
+python train_policies.py --output checkpoints --epochs 10 --seeds 1 2 3
+python benchmark.py --checkpoints checkpoints --seeds 1 2 3
+```
+
+El benchmark compara la política aleatoria, la heurística y REINFORCE. El
+resultado se presenta como media +/- desviación estándar entre semillas.
+
 El entrenamiento utiliza REINFORCE: cada episodio muestrea acciones de la
 política, calcula recompensas y actualiza la red usando los retornos
 descontados. No utiliza las acciones de `RuleBasedPolicy` como etiquetas.
+
+## Formulación del MDP (Etapa 2)
+
+- **Estado:** vector local normalizado de 20 valores: energía, edad, objetivos
+  visibles, cantidades cercanas, comida visible, posición relativa y especie.
+  El agente no recibe el mapa completo ni el estado interno de otros animales.
+- **Acciones:** espacio discreto. Cada especie dispone de cinco acciones válidas:
+  movimiento, descanso, huida, reproducción y una acción propia de su especie
+  (`EAT` para herbívoros o `HUNT` para carnívoros).
+- **Recompensa:** cambio de energía, una bonificación pequeña por permanecer
+  vivo, penalización por morir y bonificaciones por caza y nacimiento. Esto es
+  reward shaping y busca premiar supervivencia y estabilidad ecológica.
+- **Fin del episodio:** muerte del animal controlado o llegada a `max_steps`.
+- **Descuento:** `gamma=0.99`, porque las decisiones actuales deben considerar
+  consecuencias cercanas de varios pasos sin hacer que las recompensas lejanas
+  dominen el episodio.
+
+La comparación mínima de la etapa usa tres referencias: `RandomPolicy`, que
+elige uniformemente; `RuleBasedPolicy`, que representa una heurística manual; y
+la política neuronal entrenada con REINFORCE. Los resultados deben repetirse
+con las semillas 1, 2 y 3 y reportarse como media ± desviación estándar.
 
 El entrenamiento genera dos archivos:
 
