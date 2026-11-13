@@ -14,8 +14,8 @@ from config import SimulationConfig
 from learning.network import NeuralNetwork
 from learning.observations import OBSERVATION_SIZE, build_observation
 from learning.rewards import calculate_reward
-from policies.neural import NeuralPolicy
 from policies.base import Policy
+from policies.neural import NeuralPolicy
 from policies.rule_based import RuleBasedPolicy
 
 
@@ -572,6 +572,7 @@ def evaluate_policies(
         "survival": round(survival, 4),
         "episode_reward": round(episode_reward, 4),
         "episode_length": world.step_count,
+        "fitness": round(fitness, 6),
     }
     return round(fitness, 6), evaluation
 
