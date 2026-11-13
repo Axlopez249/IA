@@ -1,4 +1,4 @@
-# Entrenamiento supervisado por imitacion de la politica basada en reglas.
+# Entrenamiento supervisado y por refuerzo de las politicas del ecosistema.
 
 from __future__ import annotations
 
@@ -32,6 +32,16 @@ class TrainingReport:
     losses: list[float]
     accuracy: float
     examples: int
+
+
+@dataclass
+class ReinforceReport:
+    # Resumen de un entrenamiento REINFORCE por episodios.
+
+    rewards: list[float]
+    episode_lengths: list[int]
+    losses: list[float]
+    survival_rate: float
 
 
 POLICY_FILE_VERSION = 1
@@ -144,6 +154,157 @@ def train_species_policy(
     return policy, TrainingReport(losses, accuracy, len(examples))
 
 
+def train_policy_reinforce(
+    species: Species,
+    config: SimulationConfig | None = None,
+    episodes: int = 10,
+    steps_per_episode: int = 50,
+    gamma: float = 0.99,
+    learning_rate: float = 0.01,
+    seed: int = 0,
+    policy: NeuralPolicy | None = None,
+) -> tuple[NeuralPolicy, ReinforceReport]:
+    # Entrena una politica mediante ensayo y error usando REINFORCE.
+    # REINFORCE actualiza la politica despues de completar cada trayectoria.
+    if episodes <= 0 or steps_per_episode <= 0:
+        raise ValueError("episodes y steps_per_episode deben ser mayores que cero.")
+    if not 0.0 < gamma <= 1.0:
+        raise ValueError("gamma debe estar entre cero y uno.")
+    if learning_rate <= 0.0:
+        raise ValueError("learning_rate debe ser mayor que cero.")
+
+    config = config or SimulationConfig()
+    # La semilla mantiene reproducible la exploracion sin eliminar el azar.
+    generator = random.Random(seed)
+    # Al recibir una politica se conserva su aprendizaje entre epocas.
+    trained_policy = policy or NeuralPolicy(species, seed=seed)
+    episode_rewards: list[float] = []
+    episode_lengths: list[int] = []
+    losses: list[float] = []
+    survived_episodes = 0
+
+    from learning.training_environment import IndividualTrainingEnvironment
+    from main import build_world
+
+    for episode in range(episodes):
+        # Cada episodio empieza en un mundo nuevo para evitar reutilizar estados.
+        episode_config = replace(
+            config,
+            seed=config.seed + seed + episode,
+            max_steps=steps_per_episode,
+        )
+        opponent_species = (
+            Species.CARNIVORE
+            if species == Species.HERBIVORE
+            else Species.HERBIVORE
+        )
+        world = build_world(
+            episode_config,
+            use_neural_policy=True,
+            supervisors={},
+            policies={
+                species: trained_policy,
+                opponent_species: NeuralPolicy(
+                    opponent_species,
+                    seed=seed + episode + 1,
+                ),
+            },
+        )
+        # Solo el animal seleccionado recibe las acciones de esta trayectoria.
+        animal = next(
+            (
+                candidate
+                for candidate in world.animals
+                if candidate.species == species
+            ),
+            None,
+        )
+        if animal is None:
+            raise RuntimeError(
+                f"No se pudo crear un animal de la especie {species.value}."
+            )
+
+        environment = IndividualTrainingEnvironment(world, animal)
+        observation = environment.reset()
+        trajectory: list[tuple[tuple[float, ...], Action, float]] = []
+
+        # La politica explora, observa la recompensa y guarda la trayectoria.
+        for _ in range(steps_per_episode):
+            action = _sample_policy_action(
+                trained_policy,
+                observation,
+                generator,
+            )
+            result = environment.step(action)
+            trajectory.append((observation, action, result.reward))
+            observation = result.observation
+            if result.done:
+                break
+
+        # G_t estima cuanto beneficio futuro produjo cada decision.
+        returns = _discounted_returns(
+            [reward for _, _, reward in trajectory],
+            gamma,
+        )
+        total_loss = 0.0
+        # El gradiente refuerza acciones con retornos altos y castiga las demas.
+        for (state, action, _), return_value in zip(trajectory, returns):
+            total_loss += trained_policy.network.train_policy_gradient(
+                state,
+                action_index(action),
+                return_value,
+                learning_rate,
+            )
+
+        episode_rewards.append(round(sum(reward for _, _, reward in trajectory), 4))
+        episode_lengths.append(len(trajectory))
+        losses.append(total_loss / max(len(trajectory), 1))
+        if animal.alive:
+            survived_episodes += 1
+
+    return trained_policy, ReinforceReport(
+        rewards=episode_rewards,
+        episode_lengths=episode_lengths,
+        losses=losses,
+        survival_rate=survived_episodes / episodes,
+    )
+
+
+def _sample_policy_action(
+    policy: NeuralPolicy,
+    observation: tuple[float, ...],
+    generator: random.Random,
+) -> Action:
+    # Muestrea una accion valida segun la distribucion de la politica.
+    valid_actions = policy.valid_actions()
+    logits = policy.network.forward(observation)
+    # Se excluyen acciones imposibles antes de convertir logits a probabilidades.
+    valid_logits = [
+        logits[action_index(action)]
+        for action in valid_actions
+    ]
+    probabilities = policy.network.softmax(valid_logits)
+    threshold = generator.random()
+    cumulative = 0.0
+    # La accion se elige con muestreo categorico, no con argmax.
+    for action, probability in zip(valid_actions, probabilities):
+        cumulative += probability
+        if threshold <= cumulative:
+            return action
+    return valid_actions[-1]
+
+
+def _discounted_returns(rewards: list[float], gamma: float) -> list[float]:
+    # Calcula G_t = r_t + gamma*r_(t+1) + ... para una trayectoria.
+    returns = [0.0] * len(rewards)
+    running_return = 0.0
+    # Se recorre hacia atras porque cada retorno depende del siguiente.
+    for index in range(len(rewards) - 1, -1, -1):
+        running_return = rewards[index] + gamma * running_return
+        returns[index] = running_return
+    return returns
+
+
 def save_species_policies(
     policies: dict[Species, NeuralPolicy],
     path: str | Path,
@@ -205,7 +366,7 @@ def load_species_policies(path: str | Path) -> dict[Species, NeuralPolicy]:
 def train_species_policies(
     config: SimulationConfig | None = None,
     **training_options: Any,
-) -> tuple[dict[Species, NeuralPolicy], dict[Species, TrainingReport]]:
+) -> tuple[dict[Species, NeuralPolicy], dict[Species, ReinforceReport]]:
     """Entrena ambas especies y devuelve políticas listas para persistir.
 
     Cuando se indica ``checkpoint_dir``, cada época se evalúa en una simulación
@@ -221,23 +382,16 @@ def train_species_policies(
     checkpoint_dir_value = training_options.pop("checkpoint_dir", None)
     evaluation_steps = int(training_options.pop("evaluation_steps", 50))
     resume_from = training_options.pop("resume_from", None)
+    gamma = float(training_options.pop("gamma", 0.99))
     if training_options:
         unknown = ", ".join(sorted(training_options))
         raise TypeError(f"Opciones de entrenamiento desconocidas: {unknown}")
 
     checkpoint_dir = Path(checkpoint_dir_value) if checkpoint_dir_value else None
+    # Las politicas cargadas permiten continuar el aprendizaje desde latest.json.
     policies = _load_or_create_training_policies(resume_from, seed)
-    examples = {
-        species: collect_examples(
-            species,
-            config,
-            episodes=episodes,
-            steps_per_episode=steps_per_episode,
-        )
-        for species in (Species.HERBIVORE, Species.CARNIVORE)
-    }
     reports = {
-        species: TrainingReport([], 0.0, len(examples[species]))
+        species: ReinforceReport([], [], [], 0.0)
         for species in (Species.HERBIVORE, Species.CARNIVORE)
     }
 
@@ -254,20 +408,25 @@ def train_species_policies(
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     for epoch in range(start_epoch + 1, start_epoch + epochs + 1):
+        # Cada epoca acumula nuevas trayectorias para ambas especies.
         for offset, species in enumerate((Species.HERBIVORE, Species.CARNIVORE)):
-            losses = train_network(
-                policies[species].network,
-                examples[species],
-                epochs=1,
+            policy, report = train_policy_reinforce(
+                species,
+                config=config,
+                episodes=episodes,
+                steps_per_episode=steps_per_episode,
+                gamma=gamma,
                 learning_rate=learning_rate,
                 seed=seed + epoch + offset,
+                policy=policies[species],
             )
-            reports[species].losses.extend(losses)
-            reports[species].accuracy = calculate_accuracy(
-                policies[species].network,
-                examples[species],
-            )
+            policies[species] = policy
+            reports[species].rewards.extend(report.rewards)
+            reports[species].episode_lengths.extend(report.episode_lengths)
+            reports[species].losses.extend(report.losses)
+            reports[species].survival_rate = report.survival_rate
 
+        # La evaluacion no entrena; solo decide si el checkpoint merece ser best.
         fitness, evaluation = evaluate_policies(
             policies,
             config,
@@ -283,19 +442,23 @@ def train_species_policies(
                     "loss": reports[species].losses[-1]
                     if reports[species].losses
                     else None,
-                    "accuracy": reports[species].accuracy,
-                    "examples": reports[species].examples,
+                    "reward": reports[species].rewards[-1]
+                    if reports[species].rewards
+                    else None,
+                    "survival_rate": reports[species].survival_rate,
                 }
                 for species in reports
             },
         }
         if checkpoint_dir:
+            # latest siempre representa el estado mas reciente del entrenamiento.
             save_species_policies(
                 policies,
                 checkpoint_dir / "latest.json",
                 metadata=metadata,
             )
             if fitness > best_fitness:
+                # best conserva el estado con mejor desempeno ecologico observado.
                 best_fitness = fitness
                 save_species_policies(
                     policies,

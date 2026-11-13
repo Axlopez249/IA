@@ -23,6 +23,10 @@ python train_policies.py --output checkpoints --epochs 10
 python main.py --neural --steps 100
 ```
 
+El entrenamiento utiliza REINFORCE: cada episodio muestrea acciones de la
+política, calcula recompensas y actualiza la red usando los retornos
+descontados. No utiliza las acciones de `RuleBasedPolicy` como etiquetas.
+
 El entrenamiento genera dos archivos:
 
 - `checkpoints/latest.json`: última época completada.
@@ -41,6 +45,17 @@ Para reanudar el entrenamiento:
 ```powershell
 python train_policies.py --output checkpoints --resume checkpoints/latest.json
 ```
+
+Para ejecutar una política guardada:
+
+```powershell
+python main.py --resume --steps 100
+python main.py --load best --steps 100
+```
+
+`--resume` carga `checkpoints/latest.json`, mientras que `--load best` carga
+`checkpoints/best.json` sin exploración. Si se usa solamente `--neural`, la
+red se inicializa con pesos aleatorios.
 
 La visualizacion grafica requiere `matplotlib`. La terminal se reserva para las metricas de la simulacion y no muestra una representacion alternativa del mapa.
 

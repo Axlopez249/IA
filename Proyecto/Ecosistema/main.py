@@ -63,10 +63,14 @@ def run(
 
 	#Inteligencia de enjambre
 	if supervisors is None:
-		supervisors = {
-			Species.HERBIVORE: RuleBasedSupervisor(Species.HERBIVORE),
-			Species.CARNIVORE: RuleBasedSupervisor(Species.CARNIVORE)
-		}
+		supervisors = (
+			{}
+			if use_neural_policy
+			else {
+				Species.HERBIVORE: RuleBasedSupervisor(Species.HERBIVORE),
+				Species.CARNIVORE: RuleBasedSupervisor(Species.CARNIVORE)
+			}
+		)
 
 	# Ejecuta la simulacion y muestra un resumen periodico de sus metricas.
 	world = build_world(
@@ -126,6 +130,17 @@ if __name__ == "__main__":
 	parser.add_argument("--visual", action="store_true", help="Abre la ventana 2D.")
 	parser.add_argument("--neural", action="store_true", help="Usa politicas neuronales.")
 	parser.add_argument(
+		"--resume",
+		action="store_true",
+		help="Carga checkpoints/latest.json para continuar con los pesos actuales.",
+	)
+	parser.add_argument(
+		"--load",
+		choices=("best",),
+		default=None,
+		help="Carga el checkpoint best.json para una demostracion sin exploracion.",
+	)
+	parser.add_argument(
 		"--policy-file",
 		default=None,
 		help="Carga pesos neuronales persistidos desde un archivo JSON.",
@@ -137,17 +152,27 @@ if __name__ == "__main__":
 	)
 	parser.add_argument("--steps", type=int, default=None, help="Numero de pasos.")
 	args = parser.parse_args()
-	default_best = Path("checkpoints") / "best.json"
+	if args.resume and args.load is not None:
+		parser.error("--resume y --load best no se pueden usar juntos.")
+
 	policy_file = args.policy_file
-	if args.neural and policy_file is None and default_best.is_file():
-		policy_file = str(default_best)
+	if args.resume:
+		policy_file = str(Path("checkpoints") / "latest.json")
+	elif args.load == "best":
+		policy_file = str(Path("checkpoints") / "best.json")
+
+	if policy_file is not None:
+		args.neural = True
 	policies = load_species_policies(policy_file) if policy_file else None
+	if args.load == "best" and policies is not None:
+		for policy in policies.values():
+			policy.exploration_rate = 0.0
 	save_policy_file = args.save_policy_file
-	if args.neural and save_policy_file is None:
+	if args.neural and save_policy_file is None and args.load != "best":
 		save_policy_file = str(Path("checkpoints") / "latest.json")
 	run(
 		steps=args.steps,
-		use_neural_policy=args.neural or policies is not None,
+		use_neural_policy=args.neural,
 		visualize=args.visual,
 		policies=policies,
 		save_policy_file=save_policy_file,

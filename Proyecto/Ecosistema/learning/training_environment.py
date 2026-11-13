@@ -34,6 +34,7 @@ class IndividualTrainingEnvironment:
 
     def reset(self) -> tuple[float, ...]:
         # Devuelve la observacion inicial del episodio actual.
+        # El entrenador crea un mundo nuevo antes de cada episodio.
         return build_observation(self.animal, self.world)
 
     def step(self, action: Action) -> StepResult:
@@ -43,6 +44,7 @@ class IndividualTrainingEnvironment:
         previous_hunts = self.world.hunts
         previous_births = self.world.births
 
+        # El entorno no usa la politica de reglas para elegir la accion controlada.
         self.world.update_objectives()
         self.animal.objective = self.world.objectives.get(self.animal.species)
         if self.animal.alive:

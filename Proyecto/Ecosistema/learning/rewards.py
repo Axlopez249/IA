@@ -21,6 +21,7 @@ def calculate_reward(
     world: "World",
 ) -> float:
     # Usa cambios observables del entorno para crear una recompensa explicable.
+    # La energia mide supervivencia inmediata; hunts y births premian objetivos ecologicos.
     reward = animal.energy - previous_energy
 
     if animal.alive:

@@ -307,6 +307,92 @@ class NeuralNetwork:
         )
         return loss
 
+    def train_policy_gradient(
+        self,
+        observation: tuple[float, ...],
+        action_index: int,
+        return_value: float,
+        learning_rate: float = 0.01,
+    ) -> float:
+        # Ajusta la politica para reforzar acciones con retornos positivos.
+        # La perdida es -G_t log(pi(a_t|s_t)), la forma REINFORCE de policy gradient.
+        if not 0 <= action_index < self.output_size:
+            raise ValueError("El indice de la accion no es valido.")
+
+        logits, cache = self.forward_with_cache(observation)
+        probabilities = self.softmax(logits)
+        # Un retorno alto aumenta la probabilidad de la accion; uno bajo la reduce.
+        loss = -return_value * math.log(max(probabilities[action_index], 1e-12))
+        output_gradient = [
+            return_value * probability for probability in probabilities
+        ]
+        output_gradient[action_index] -= return_value
+
+        output_weight_gradients = [
+            [0.0] * self.hidden_size for _ in range(self.output_size)
+        ]
+        output_bias_gradients = list(output_gradient)
+        second_hidden_gradient = [0.0] * self.hidden_size
+
+        for output_index in range(self.output_size):
+            for hidden_index in range(self.hidden_size):
+                output_weight_gradients[output_index][hidden_index] = (
+                    output_gradient[output_index]
+                    * cache["second_hidden"][hidden_index]
+                )
+                second_hidden_gradient[hidden_index] += (
+                    self.output_weights[output_index][hidden_index]
+                    * output_gradient[output_index]
+                )
+
+        second_pre_gradient = [
+            second_hidden_gradient[index]
+            * relu_derivative(cache["second_pre_activation"][index])
+            for index in range(self.hidden_size)
+        ]
+        second_weight_gradients = [
+            [0.0] * self.hidden_size for _ in range(self.hidden_size)
+        ]
+        first_hidden_gradient = [0.0] * self.hidden_size
+
+        for second_index in range(self.hidden_size):
+            for first_index in range(self.hidden_size):
+                second_weight_gradients[second_index][first_index] = (
+                    second_pre_gradient[second_index]
+                    * cache["first_hidden"][first_index]
+                )
+                first_hidden_gradient[first_index] += (
+                    self.second_weights[second_index][first_index]
+                    * second_pre_gradient[second_index]
+                )
+
+        first_pre_gradient = [
+            first_hidden_gradient[index]
+            * relu_derivative(cache["first_pre_activation"][index])
+            for index in range(self.hidden_size)
+        ]
+        first_weight_gradients = [
+            [0.0] * self.input_size for _ in range(self.hidden_size)
+        ]
+
+        for first_index in range(self.hidden_size):
+            for input_index in range(self.input_size):
+                first_weight_gradients[first_index][input_index] = (
+                    first_pre_gradient[first_index]
+                    * cache["inputs"][input_index]
+                )
+
+        self.apply_gradients(
+            first_weight_gradients,
+            first_pre_gradient,
+            second_weight_gradients,
+            second_pre_gradient,
+            output_weight_gradients,
+            output_bias_gradients,
+            learning_rate,
+        )
+        return loss
+
     def apply_gradients(
         self,
         first_weight_gradients: list[list[float]],
