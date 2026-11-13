@@ -51,9 +51,12 @@ descontados. No utiliza las acciones de `RuleBasedPolicy` como etiquetas.
 - **Acciones:** espacio discreto. Cada especie dispone de cinco acciones válidas:
   movimiento, descanso, huida, reproducción y una acción propia de su especie
   (`EAT` para herbívoros o `HUNT` para carnívoros).
-- **Recompensa:** cambio de energía, una bonificación pequeña por permanecer
-  vivo, penalización por morir y bonificaciones por caza y nacimiento. Esto es
-  reward shaping y busca premiar supervivencia y estabilidad ecológica.
+- **Recompensa:** cambio de energía normalizado, una bonificación pequeña por
+  permanecer vivo, penalización por morir y bonificaciones por caza y
+  nacimiento. Descansar solo recibe una bonificación adicional cuando la
+  energía es baja y se penaliza con energía suficiente. Esto es reward shaping
+  y busca premiar supervivencia, búsqueda de recursos y estabilidad ecológica
+  sin convertir `REST` en la estrategia dominante.
 - **Fin del episodio:** muerte del animal controlado o llegada a `max_steps`.
 - **Descuento:** `gamma=0.99`, porque las decisiones actuales deben considerar
   consecuencias cercanas de varios pasos sin hacer que las recompensas lejanas
