@@ -77,6 +77,7 @@ class Animal:
                 if not self.alive:
                     break
                 action = self.policy.choose_action(self, world)
+                world.last_actions[self.identifier] = action
                 self.execute_action(action, world)
 
     def execute_action(self, action: Action, world: "World") -> None:

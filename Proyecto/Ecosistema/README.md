@@ -28,10 +28,16 @@ Para cumplir el protocolo mínimo de evaluación, entrena tres semillas:
 ```powershell
 python train_policies.py --output checkpoints --epochs 10 --seeds 1 2 3
 python benchmark.py --checkpoints checkpoints --seeds 1 2 3
+python plot_results.py --results checkpoints --output results
 ```
 
 El benchmark compara la política aleatoria, la heurística y REINFORCE. El
 resultado se presenta como media +/- desviación estándar entre semillas.
+Cada semilla guarda sus recompensas, longitudes y pérdidas en
+`checkpoints/seed-N/training_results.json`. `plot_results.py` lee esos datos,
+calcula la media y la desviación estándar por episodio para recompensa,
+longitud y éxito, y genera
+`results/learning_curves.png`.
 
 El entrenamiento utiliza REINFORCE: cada episodio muestrea acciones de la
 política, calcula recompensas y actualiza la red usando los retornos

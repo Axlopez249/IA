@@ -5,7 +5,7 @@ import statistics
 from pathlib import Path
 
 from config import SimulationConfig
-from learning.training import train_species_policies
+from learning.training import save_training_results, train_species_policies
 
 
 def main() -> None:
@@ -56,6 +56,14 @@ def main() -> None:
             checkpoint_dir=seed_output,
             resume_from=args.resume if len(seeds) == 1 else None,
             seed=seed,
+        )
+        # Al final de la ejecucion de cada semilla, se guardan los resultados de entrenamiento en 
+        # un archivo JSON, para que puedan ser analizados posteriormente. 
+        # Esto incluye métricas de rendimiento y supervivencia.
+        save_training_results(
+            seed,
+            reports,
+            seed_output / "training_results.json",
         )
         # Guardar los resultados de cada especie para calcular la media y desviación estándar
         for species, report in reports.items():

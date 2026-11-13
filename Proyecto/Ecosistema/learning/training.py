@@ -13,6 +13,7 @@ from agents.animal import Species
 from config import SimulationConfig
 from learning.network import NeuralNetwork
 from learning.observations import OBSERVATION_SIZE, build_observation
+from learning.rewards import calculate_reward
 from policies.neural import NeuralPolicy
 from policies.base import Policy
 from policies.rule_based import RuleBasedPolicy
@@ -43,6 +44,7 @@ class ReinforceReport:
     episode_lengths: list[int]
     losses: list[float]
     survival_rate: float
+    successes: list[int]
 
 
 POLICY_FILE_VERSION = 1
@@ -118,6 +120,7 @@ def train_network(
 
     generator = random.Random(seed)
     losses: list[float] = []
+    successes: list[int] = []
 
     for _ in range(epochs):
         shuffled_examples = list(examples)
@@ -182,6 +185,7 @@ def train_policy_reinforce(
     episode_rewards: list[float] = []
     episode_lengths: list[int] = []
     losses: list[float] = []
+    successes: list[int] = []
     survived_episodes = 0
 
     from learning.training_environment import IndividualTrainingEnvironment
@@ -266,12 +270,16 @@ def train_policy_reinforce(
         losses.append(total_loss / max(len(trajectory), 1))
         if animal.alive:
             survived_episodes += 1
+            successes.append(1)
+        else:
+            successes.append(0)
 
     return trained_policy, ReinforceReport(
         rewards=episode_rewards,
         episode_lengths=episode_lengths,
         losses=losses,
         survival_rate=survived_episodes / episodes,
+        successes=successes,
     )
 
 
@@ -396,7 +404,7 @@ def train_species_policies(
     # Las politicas cargadas permiten continuar el aprendizaje desde latest.json.
     policies = _load_or_create_training_policies(resume_from, seed)
     reports = {
-        species: ReinforceReport([], [], [], 0.0)
+        species: ReinforceReport([], [], [], 0.0, [])
         for species in (Species.HERBIVORE, Species.CARNIVORE)
     }
 
@@ -429,6 +437,7 @@ def train_species_policies(
             reports[species].rewards.extend(report.rewards)
             reports[species].episode_lengths.extend(report.episode_lengths)
             reports[species].losses.extend(report.losses)
+            reports[species].successes.extend(report.successes)
             reports[species].survival_rate = report.survival_rate
 
         # La evaluacion no entrena; solo decide si el checkpoint merece ser best.
@@ -498,22 +507,37 @@ def evaluate_policies(
         policies=policies,
     )
     initial_population = len(world.animals)
+    tracked_animal = world.animals[0] if world.animals else None
     episode_reward = 0.0
     for _ in range(steps):
         if not world.animals:
             break
-        previous_energy = sum(animal.energy for animal in world.animals)
+        previous_energy = (
+            tracked_animal.energy if tracked_animal is not None else 0.0
+        )
+        was_alive = tracked_animal.alive if tracked_animal is not None else False
         previous_births = world.births
         previous_hunts = world.hunts
-        previous_deaths = world.deaths
         world.step()
-        episode_reward += (
-            sum(animal.energy for animal in world.animals) - previous_energy
-            + 0.05 * len(world.animals)
-            + 2.0 * (world.births - previous_births)
-            + 3.0 * (world.hunts - previous_hunts)
-            - 10.0 * (world.deaths - previous_deaths)
-        )
+        if tracked_animal is not None:
+            action = world.last_actions.get(
+                tracked_animal.identifier,
+                Action.REST,
+            )
+            episode_reward += calculate_reward(
+                tracked_animal,
+                action,
+                previous_energy,
+                was_alive,
+                previous_hunts,
+                previous_births,
+                world,
+            )
+
+        # El agente evaluado es un individuo representativo del episodio.
+        # El fitness sigue midiendo el estado global del ecosistema.
+        if tracked_animal is not None and not tracked_animal.alive:
+            break
 
     current_population = len(world.animals)
     survival = current_population / max(initial_population, 1)
@@ -550,6 +574,30 @@ def evaluate_policies(
         "episode_length": world.step_count,
     }
     return round(fitness, 6), evaluation
+
+
+def save_training_results(
+    seed: int,
+    reports: dict[Species, ReinforceReport],
+    path: str | Path,
+) -> None:
+    """Guarda las series por episodio para generar curvas entre semillas."""
+    payload = {
+        "seed": seed,
+        "species": {
+            species.value: {
+                "rewards": report.rewards,
+                "episode_lengths": report.episode_lengths,
+                "losses": report.losses,
+                "survival_rate": report.survival_rate,
+                "successes": report.successes,
+            }
+            for species, report in reports.items()
+        },
+    }
+    results_path = Path(path)
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+    results_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def _load_or_create_training_policies(

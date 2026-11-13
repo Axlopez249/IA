@@ -4,6 +4,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+from agents.actions import Action
 from agents.animal import Species
 from .resources import Food
 
@@ -27,6 +28,7 @@ class World:
     hunts: int = 0
     supervisors: dict[Species, "Supervisor"] = field(default_factory=dict)
     objectives: dict[Species, "Objective | None"] = field(default_factory=dict)
+    last_actions: dict[str, Action] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # Crea el generador aleatorio usando la semilla de la configuracion.
@@ -129,6 +131,7 @@ class World:
 
     def step(self) -> None:
         # Ejecuta un tick, resuelve reproduccion, muertes y regeneracion.
+        self.last_actions.clear()
         self.update_objectives()
         for animal in list(self.animals):
             if animal.alive:
