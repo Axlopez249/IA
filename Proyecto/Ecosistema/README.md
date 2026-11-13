@@ -93,6 +93,18 @@ python main.py --resume --steps 100
 python main.py --load best --steps 100
 ```
 
+Para ejecutar el protocolo completo de la Etapa 2 y generar tablas CSV y
+gráficas con media y desviación estándar:
+
+```powershell
+python run_experiments.py --output experiments/stage2 --epochs 10 --episodes 50 --steps-per-episode 50 --evaluation-episodes 10 --seeds 1 2 3 4 5
+```
+
+El comando guarda checkpoints por semilla, `training_metrics.csv`,
+`evaluation_metrics.csv`, `training_curves.png`, `evaluation_comparison.png` y
+`run_metadata.txt`. Los archivos CSV permiten construir las tablas del artículo
+y las gráficas incluyen la dispersión entre semillas.
+
 `--resume` carga `checkpoints/latest.json`, mientras que `--load best` carga
 `checkpoints/best.json` sin exploración. Si se usa solamente `--neural`, la
 red se inicializa con pesos aleatorios.

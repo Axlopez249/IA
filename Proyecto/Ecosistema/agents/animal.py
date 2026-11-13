@@ -106,7 +106,14 @@ class Animal:
 
     def move(self, world: "World") -> None:
         # Avanza hacia un objetivo visible o explora en una direccion aleatoria.
-        target = world.nearest_food(self) if self.species == Species.HERBIVORE else world.nearest_prey(self)
+        if self.objective == Objective.GROUP:
+            target = world.nearest_reproduction_partner(self)
+        else:
+            target = (
+                world.nearest_food(self)
+                if self.species == Species.HERBIVORE
+                else world.nearest_prey(self)
+            )
         if target is None:
             dx, dy = world.rng.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
         else:

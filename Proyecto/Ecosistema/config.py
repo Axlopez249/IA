@@ -25,7 +25,7 @@ class SimulationConfig:
     
     # Reglas de reproducción
     reproduction_age: int = 5
-    reproduction_energy_threshold: float = 40.0
+    reproduction_energy_threshold: float = 30.0
     reproduction_cost: float = 15.0
     
     # Otros límites

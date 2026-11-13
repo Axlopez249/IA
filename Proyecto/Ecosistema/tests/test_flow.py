@@ -117,6 +117,62 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(world.births, 1)
         self.assertEqual(first.objective, Objective.GROUP)
 
+    def test_supervisor_prioritizes_group_when_population_is_below_minimum(self) -> None:
+        config = SimulationConfig(
+            width=3,
+            height=3,
+            initial_energy=10,
+            reproduction_age=1,
+            reproduction_energy_threshold=10,
+            reproduction_cost=1,
+            hunger_cost=0,
+            min_herbivores=3,
+            max_herbivores=10,
+            food_regrowth_rate=0,
+        )
+        supervisor = RuleBasedSupervisor(Species.HERBIVORE)
+        world = World(
+            config,
+            supervisors={Species.HERBIVORE: supervisor},
+        )
+        first = Animal(Species.HERBIVORE, 1, 1, 10, RuleBasedPolicy(), age=1)
+        second = Animal(Species.HERBIVORE, 1, 1, 10, RuleBasedPolicy(), age=1)
+        world.add_animal(first)
+        world.add_animal(second)
+
+        world.update_objectives()
+
+        self.assertEqual(world.objectives[Species.HERBIVORE], Objective.GROUP)
+
+    def test_group_objective_moves_eligible_animals_towards_partner(self) -> None:
+        config = SimulationConfig(
+            width=5,
+            height=3,
+            initial_energy=30,
+            reproduction_age=1,
+            reproduction_energy_threshold=10,
+            reproduction_cost=1,
+            hunger_cost=0,
+            min_herbivores=0,
+            max_herbivores=10,
+            food_regrowth_rate=0,
+        )
+        supervisor = RuleBasedSupervisor(Species.HERBIVORE)
+        world = World(
+            config,
+            supervisors={Species.HERBIVORE: supervisor},
+        )
+        first = Animal(Species.HERBIVORE, 0, 1, 30, RuleBasedPolicy(), age=1)
+        second = Animal(Species.HERBIVORE, 3, 1, 30, RuleBasedPolicy(), age=1)
+        world.add_animal(first)
+        world.add_animal(second)
+
+        world.step()
+
+        self.assertEqual(world.births, 0)
+        self.assertEqual(first.x, 2)
+        self.assertEqual(first.y, 1)
+
     def test_training_environment_updates_objective_before_action(self) -> None:
         supervisor = CountingSupervisor(Objective.SURVIVE)
         world = World(

@@ -37,8 +37,15 @@ class RuleBasedSupervisor:
             else world.config.min_carnivores
         )
 
-        # 1. Alerta de Extinción: la supervivencia poblacional es prioritaria.
+        # 1. Recuperación poblacional: si hay energía suficiente, agrupar
+        # individuos tiene prioridad para intentar recuperar la especie.
         if pop_size < minimum_population:
+            if avg_energy >= world.config.reproduction_energy_threshold:
+                return Objective.GROUP
+
+            # Sin energía suficiente no es posible reproducirse; conservar la
+            # respuesta de supervivencia evita que la población se desplace
+            # sin alimentarse mientras intenta agruparse.
             return Objective.SURVIVE
 
         # 2. Alerta de Hambre: Si la energía promedio es crítica.

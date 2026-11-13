@@ -63,15 +63,8 @@ def run(
 ) -> None:
 
 	#Inteligencia de enjambre
-	if supervisors is None:
-		supervisors = (
-			{}
-			if use_neural_policy
-			else {
-				Species.HERBIVORE: RuleBasedSupervisor(Species.HERBIVORE),
-				Species.CARNIVORE: RuleBasedSupervisor(Species.CARNIVORE)
-			}
-		)
+	supervisors = ({Species.HERBIVORE: RuleBasedSupervisor(Species.HERBIVORE),
+				Species.CARNIVORE: RuleBasedSupervisor(Species.CARNIVORE)})
 
 	# Ejecuta la simulacion y muestra un resumen periodico de sus metricas.
 	world = build_world(

@@ -120,6 +120,22 @@ class World:
             key=lambda candidate: self.distance(animal, candidate),
         )
 
+    def nearest_reproduction_partner(self, animal: "Animal") -> "Animal | None":
+        """Devuelve la pareja elegible más cercana para el objetivo GROUP."""
+        candidates = (
+            candidate
+            for candidate in self.animals
+            if candidate.alive
+            and candidate is not animal
+            and candidate.species == animal.species
+            and candidate.can_reproduce(self.config)
+        )
+        return min(
+            candidates,
+            key=lambda candidate: self.distance(animal, candidate),
+            default=None,
+        )
+
     def queue_reproduction(self, animal: "Animal") -> None:
         # Registra una solicitud de reproduccion sin duplicarla.
         if (
