@@ -1,0 +1,8 @@
+seeds=[1, 2, 3]
+epochs=10
+episodes_per_epoch=50
+steps_per_episode=50
+evaluation_episodes=10
+gamma=0.99
+learning_rate=0.005
+elapsed_seconds=170.562

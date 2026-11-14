@@ -105,6 +105,18 @@ El comando guarda checkpoints por semilla, `training_metrics.csv`,
 `run_metadata.txt`. Los archivos CSV permiten construir las tablas del artículo
 y las gráficas incluyen la dispersión entre semillas.
 
+Para el módulo adicional del equipo de tres integrantes se puede ejecutar el
+estudio de sensibilidad de la tasa de aprendizaje:
+
+```powershell
+python run_sensitivity.py --output experiments/sensitivity --learning-rates 0.005 0.01 0.02 --epochs 10 --episodes 50 --steps-per-episode 50 --evaluation-episodes 10 --seeds 1 2 3
+```
+
+El script ejecuta el protocolo completo para cada tasa y guarda una carpeta por
+configuración. La tabla principal queda en
+`experiments/sensitivity/sensitivity_summary.csv`, acompañada por
+`sensitivity_comparison.png` y `sensitivity_metadata.txt`.
+
 `--resume` carga `checkpoints/latest.json`, mientras que `--load best` carga
 `checkpoints/best.json` sin exploración. Si se usa solamente `--neural`, la
 red se inicializa con pesos aleatorios.

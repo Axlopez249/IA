@@ -5,4 +5,4 @@ steps_per_episode=50
 evaluation_episodes=10
 gamma=0.99
 learning_rate=0.01
-elapsed_seconds=277.919
+elapsed_seconds=259.160

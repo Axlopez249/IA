@@ -1,0 +1,7 @@
+learning_rates=[0.005, 0.01, 0.02]
+seeds=[1, 2, 3]
+epochs=10
+episodes_per_epoch=50
+steps_per_episode=50
+evaluation_episodes=10
+gamma=0.99
