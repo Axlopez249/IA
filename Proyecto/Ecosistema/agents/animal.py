@@ -20,12 +20,46 @@ class Species(Enum):
 
 class Variation(Enum):
     # Carnívoras
-    C_RESISTANT = "c_resistant" # Lenta pero aguanta mucho (1 acción, metabolismo bajo)
-    C_FAST = "c_fast"           # Rápida pero gasta más (2 acciones, metabolismo alto)
+    C_RESISTANT = "c_resistant" # Lenta pero aguanta mucho (1 acción, metabolismo bajo) - African Mottled Owl
+    C_FAST = "c_fast"           # Rápida pero gasta más (2 acciones, metabolismo alto) - Western Grey Raptor
     # Herbívoras
-    H_NORMAL = "h_normal"       # Balanceada (2 acciones, metabolismo normal)
-    H_FAST = "h_fast"           # Muy rápida pero aguanta poco (3 acciones, metabolismo alto)
-    H_SLOW = "h_slow"           # Muy lenta pero muy resistente (1 acción, metabolismo bajo)
+    H_NORMAL = "h_normal"       # Balanceada (2 acciones, metabolismo normal) - Western Blue Songbird
+    H_FAST = "h_fast"           # Muy rápida pero aguanta poco (3 acciones, metabolismo alto) - Lesser Brown Waterfowl
+    H_SLOW = "h_slow"           # Muy lenta pero muy resistente (1 acción, metabolismo bajo) - Common Multicolor Parrot
+
+# Metadatos basados en el dataset global de aves (AVONET / Global Avian Species)
+BIRD_METADATA = {
+    Variation.H_FAST: {
+        "common_name": "Lesser Brown Waterfowl",
+        "archetype": "Waterfowl",
+        "speed_kmh": 99,
+        "lifespan_years": 17.1,
+    },
+    Variation.H_SLOW: {
+        "common_name": "Common Multicolor Parrot",
+        "archetype": "Parrot",
+        "speed_kmh": 58,
+        "lifespan_years": 79.5,
+    },
+    Variation.H_NORMAL: {
+        "common_name": "Western Blue Songbird",
+        "archetype": "Songbird",
+        "speed_kmh": 55,
+        "lifespan_years": 9.7,
+    },
+    Variation.C_FAST: {
+        "common_name": "Western Grey Raptor",
+        "archetype": "Raptor",
+        "speed_kmh": 319,
+        "lifespan_years": 11.7,
+    },
+    Variation.C_RESISTANT: {
+        "common_name": "African Mottled Owl",
+        "archetype": "Owl",
+        "speed_kmh": 47,
+        "lifespan_years": 24.9,
+    }
+}
 
 @dataclass
 class Animal:
