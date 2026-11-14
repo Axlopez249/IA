@@ -43,42 +43,34 @@ El entrenamiento utiliza REINFORCE: cada episodio muestrea acciones de la
 política, calcula recompensas y actualiza la red usando los retornos
 descontados. No utiliza las acciones de `RuleBasedPolicy` como etiquetas.
 
-## Formulación del MDP (Etapa 2)
+## Formulación del MDP y Diseño de Especies (Etapa 2)
 
-- **Estado:** vector local normalizado de 20 valores: energía, edad, objetivos
-  visibles, cantidades cercanas, comida visible, posición relativa y especie.
-  El agente no recibe el mapa completo ni el estado interno de otros animales.
-- **Acciones:** espacio discreto. Cada especie dispone de cinco acciones válidas:
-  movimiento, descanso, huida, reproducción y una acción propia de su especie
-  (`EAT` para herbívoros o `HUNT` para carnívoros).
-- **Recompensa:** cambio de energía normalizado, una bonificación pequeña por
-  permanecer vivo, penalización por morir y bonificaciones por caza y
-  nacimiento. Descansar solo recibe una bonificación adicional cuando la
-  energía es baja y se penaliza con energía suficiente. Esto es reward shaping
-  y busca premiar supervivencia, búsqueda de recursos y estabilidad ecológica
-  sin convertir `REST` en la estrategia dominante.
-- **Fin del episodio:** muerte del animal controlado o llegada a `max_steps`.
-- **Descuento:** `gamma=0.99`, porque las decisiones actuales deben considerar
-  consecuencias cercanas de varios pasos sin hacer que las recompensas lejanas
-  dominen el episodio.
+### Modelado de especies y adaptación del dataset
 
-La comparación mínima de la etapa usa tres referencias: `RandomPolicy`, que
-elige uniformemente; `RuleBasedPolicy`, que representa una heurística manual; y
-la política neuronal entrenada con REINFORCE. Los resultados deben repetirse
-con las semillas 1, 2 y 3 y reportarse como media ± desviación estándar.
+Para representar la biodiversidad del ecosistema, se tomaron como referencia datos morfológicos y ecológicos reales de aves (velocidad máxima de vuelo y esperanza de vida promedio). Sin embargo, estos valores fueron ajustados y escalados intencionalmente para definir **cinco arquetipos bien diferenciados**: tres herbívoros (rápido, normal y de alta resistencia/lento) y dos carnívoros (rápido y de alta resistencia).
 
-El entrenamiento genera dos archivos:
+Esta adaptación responde a una decisión de diseño experimental: si todas las especies compartieran parámetros muy similares, la dinámica del entorno resultaría homogénea y predecible —equivalente a simular un mismo agente bajo distintos nombres—. Al introducir compromisos marcados (*trade-offs*) entre velocidad (acciones por turno) y resistencia metabólica (gasto energético y longevidad), se promueven estrategias de supervivencia asimétricas, interacciones ecológicas más complejas y comportamientos emergentes más ricos al entrenar las políticas.
+
+### Definición del MDP
+
+- **Estado:** vector local normalizado de 20 valores que incluye energía, edad, objetivos visibles, cantidades cercanas, comida visible, posición relativa y especie. El agente no recibe el mapa completo ni el estado interno de otros animales.
+- **Acciones:** espacio discreto. Cada especie dispone de cinco acciones válidas: movimiento (`MOVE`), descanso (`REST`), huida (`FLEE`), reproducción (`REPRODUCE`) y una acción propia de su nivel trófico (`EAT` para herbívoros o `HUNT` para carnívoros).
+- **Recompensa:** cambio de energía normalizado, una bonificación pequeña por permanecer vivo, penalización por morir y bonificaciones por caza y nacimiento. Descansar solo recibe una bonificación adicional cuando la energía es baja y se penaliza si se ejecuta con energía suficiente. Este diseño (*reward shaping*) busca premiar la supervivencia, la búsqueda de recursos y la estabilidad ecológica sin convertir `REST` en la estrategia dominante.
+- **Fin del episodio:** muerte del animal controlado o al alcanzar el límite de `max_steps`.
+- **Descuento:** `gamma = 0.99`, permitiendo que las decisiones actuales consideren consecuencias a mediano plazo sin que las recompensas muy lejanas dominen el aprendizaje del episodio.
+
+### Protocolo de evaluación y entrenamiento
+
+La comparación mínima de la etapa utiliza tres referencias: `RandomPolicy` (selección uniforme), `RuleBasedPolicy` (heurística manual) y la política neuronal entrenada con REINFORCE. Los resultados se repiten con las semillas `1`, `2` y `3` y se reportan como media ± desviación estándar.
+
+El entrenamiento genera dos archivos de control:
 
 - `checkpoints/latest.json`: última época completada.
 - `checkpoints/best.json`: época con mejor desempeño en una simulación de evaluación.
 
-La puntuación combina supervivencia (40%), energía promedio (25%), estabilidad
-poblacional (20%), nacimientos (10%) y cacerías (5%). Cada archivo conserva
-también la época, la puntuación y las métricas de evaluación.
+La puntuación global combina supervivencia (40%), energía promedio (25%), estabilidad poblacional (20%), nacimientos (10%) y cacerías (5%). Cada archivo conserva también la época, la puntuación y las métricas de evaluación.
 
-`main.py --neural` carga automáticamente `checkpoints/best.json` si existe y
-guarda la ejecución terminada en `checkpoints/latest.json`. También se pueden
-indicar rutas explícitas con `--policy-file` y `--save-policy-file`.
+`main.py --neural` carga automáticamente `checkpoints/best.json` si existe y guarda la ejecución terminada en `checkpoints/latest.json`. También se pueden indicar rutas explícitas mediante `--policy-file` y `--save-policy-file`.
 
 Para reanudar el entrenamiento:
 
@@ -93,8 +85,7 @@ python main.py --resume --steps 100
 python main.py --load best --steps 100
 ```
 
-Para ejecutar el protocolo completo de la Etapa 2 y generar tablas CSV y
-gráficas con media y desviación estándar:
+Para ejecutar el protocolo completo de la Etapa 2 y generar tablas CSV y gráficas con media y desviación estándar:
 
 ```powershell
 python run_experiments.py --output experiments/stage2 --epochs 10 --episodes 50 --steps-per-episode 50 --evaluation-episodes 10 --seeds 1 2 3 4 5
@@ -102,24 +93,19 @@ python run_experiments.py --output experiments/stage2 --epochs 10 --episodes 50 
 
 El comando guarda checkpoints por semilla, `training_metrics.csv`,
 `evaluation_metrics.csv`, `training_curves.png`, `evaluation_comparison.png` y
-`run_metadata.txt`. Los archivos CSV permiten construir las tablas del artículo
-y las gráficas incluyen la dispersión entre semillas.
+`run_metadata.txt`. Los archivos CSV permiten construir las tablas del artículo y las gráficas incluyen la dispersión entre semillas.
 
-Para el módulo adicional del equipo de tres integrantes se puede ejecutar el
-estudio de sensibilidad de la tasa de aprendizaje:
+Para el módulo adicional del equipo de tres integrantes se puede ejecutar el estudio de sensibilidad de la tasa de aprendizaje:
 
 ```powershell
 python run_sensitivity.py --output experiments/sensitivity --learning-rates 0.005 0.01 0.02 --epochs 10 --episodes 50 --steps-per-episode 50 --evaluation-episodes 10 --seeds 1 2 3
 ```
 
-El script ejecuta el protocolo completo para cada tasa y guarda una carpeta por
-configuración. La tabla principal queda en
+El script ejecuta el protocolo completo para cada tasa y guarda una carpeta por configuración. La tabla principal queda en
 `experiments/sensitivity/sensitivity_summary.csv`, acompañada por
 `sensitivity_comparison.png` y `sensitivity_metadata.txt`.
 
-`--resume` carga `checkpoints/latest.json`, mientras que `--load best` carga
-`checkpoints/best.json` sin exploración. Si se usa solamente `--neural`, la
-red se inicializa con pesos aleatorios.
+`--resume` carga `checkpoints/latest.json`, mientras que `--load best` carga `checkpoints/best.json` sin exploración. Si se usa solamente `--neural`, la red se inicializa con pesos aleatorios.
 
 La visualizacion grafica requiere `matplotlib`. La terminal se reserva para las metricas de la simulacion y no muestra una representacion alternativa del mapa.
 
